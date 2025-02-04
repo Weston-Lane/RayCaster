@@ -1,20 +1,22 @@
 #include <iostream>
-
+#include <Windows.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include "logger.h"
 
 int main() {
     // Initialize GLFW
+
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
+        LOG_ERROR("Failed to initialize GLFW");
         return -1;
     }
 
     // Create a windowed mode window and its OpenGL context
     GLFWwindow* window = glfwCreateWindow(800, 600, "Hello GLFW", NULL, NULL);
     if (!window) {
-        std::cerr << "Failed to create GLFW window" << std::endl;
+        LOG_ERROR("Failed to create GLFW window");
         glfwTerminate();
         return -1;
     }
@@ -24,7 +26,7 @@ int main() {
 
     // Initialize Glad
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize Glad" << std::endl;
+        LOG_ERROR( "Failed to initialize Glad");
         return -1;
     }
 
@@ -40,10 +42,7 @@ int main() {
         // Poll for and process events
         glfwPollEvents();
     }
-      
-  std::wcout << "1) ✊\n";
-  std::wcout << "2) ✋\n";
-  std::wcout << "3) ✌️\n";
+
 
     // Clean up
     glfwTerminate();

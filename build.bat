@@ -1,4 +1,5 @@
 @echo off
+set ESC=
 set INCLUDE_PATH=../include
 set LIBRARY_PATH=../lib
 set SRC_PATH=../src/*cpp
@@ -8,8 +9,13 @@ mkdir "build"
 rem temporarily moves into this directory to compile the exe
 pushd "build"
 rem /Zi creates the pdb file for debuging in VS, use command devenv [desired app.exe]; user.lib is the windows UI library
-cl /x /EHcs /Zi /Fe:Finger_Gun /I%INCLUDE_PATH% %SRC_PATH% %ASSEM_MODULES% /link /LIBPATH:%LIBRARY_PATH% %LIBRARIES%
-Finger_Gun.exe
+
+cl /EHcs /Zi /Fe:Finger_Gun /I%INCLUDE_PATH% %SRC_PATH% %ASSEM_MODULES% /link /LIBPATH:%LIBRARY_PATH% %LIBRARIES%
+IF "%1"=="-c" (   
+echo %ESC%[92mCompiled Sucessfully...%ESC%[0m
+) ELSE (
+    Finger_Gun.exe
+)
 popd
 
 
