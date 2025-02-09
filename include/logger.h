@@ -1,5 +1,5 @@
 #pragma once
-//set the level of logging via this file
+//*set the level of logging via this file
 #define LOG_WARN_ENABLED 1
 #define LOG_INFO_ENABLED 1
 #define LOG_DEBUG_ENABLED 1
@@ -21,30 +21,49 @@ typedef enum log_level
 
 bool init_logging();
 void shutdown_logging();
-void log_output(log_level level, std::string message);
+
+template<typename... Args>
+void log_output(log_level level, Args&&... message)
+{
+    SetConsoleOutputCP(CP_UTF8);
+    std::string levelStrings[6]={"{FATAL 💀}: ", "{ERROR 😵}: ", "{WARN ⚠️}: ",
+                                 "{INFO ℹ️}: ", "{DEBUG 🐛}: ", "{TRACE}: "};
+    UINT8 color[6]={65,4,6,2,1,8};
+    HANDLE cHandle= GetStdHandle(STD_OUTPUT_HANDLE);
+    
+    //save prv attribute so I can get the prv settings back
+    CONSOLE_SCREEN_BUFFER_INFO ci;
+    GetConsoleScreenBufferInfo(cHandle, &ci);
+    WORD originalAttrib=ci.wAttributes;
+
+    SetConsoleTextAttribute(cHandle, color[level]);
+    std::cout<<levelStrings[level];
+    (std::cout<<...<<message)<<std::endl;
+    //reset to original settings
+    SetConsoleTextAttribute(cHandle, originalAttrib);
+}
 
 //always compiled
-//TODO: use cpp variatic templates to allow for more arguements than just a message
-#define LOG_FATAL(message, ...) log_output(LOG_LEVEL_FATAL, message);
-#define LOG_ERROR(message, ...) log_output(LOG_LEVEL_ERROR, message);
+#define LOG_FATAL(...) log_output(LOG_LEVEL_FATAL, __VA_ARGS__);
+#define LOG_ERROR(...) log_output(LOG_LEVEL_ERROR, __VA_ARGS__);
 
 #if LOG_WARN_ENABLED==1
-    #define LOG_WARN(message, ...) log_output(LOG_LEVEL_WARN, message);
+    #define LOG_WARN(...) log_output(LOG_LEVEL_WARN, __VA_ARGS__);
 #else
-    #define LOG_WARN(message, ...)
+    #define LOG_WARN(...)
 #endif
 #if LOG_INFO_ENABLED==1
-    #define LOG_INFO(message, ...) log_output(LOG_LEVEL_INFO, message);
+    #define LOG_INFO(...) log_output(LOG_LEVEL_INFO, __VA_ARGS__);
 #else
-    #define LOG_INFO(message, ...)
+    #define LOG_INFO(...)
 #endif
 #if LOG_DEBUG_ENABLED==1
-    #define LOG_DEBUG(message, ...) log_output(LOG_LEVEL_DEBUG, message);
+    #define LOG_DEBUG(...) log_output(LOG_LEVEL_DEBUG, __VA_ARGS__);
 #else
-    #define LOG_DEBUG(message, ...)
+    #define LOG_DEBUG(...)
 #endif
 #if LOG_TRACE_ENABLED==1
-    #define LOG_TRACE(message, ...) log_output(LOG_LEVEL_TRACE, message);
+    #define LOG_TRACE(...) log_output(LOG_LEVEL_TRACE, __VA_ARGS__);
 #else
-    #define LOG_TRACE(message, ...)
+    #define LOG_TRACE(...)
 #endif
