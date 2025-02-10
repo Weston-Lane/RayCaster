@@ -1,7 +1,6 @@
-#include <vector>
+#include "shaderUtils.h"
 #include "GLinit.hpp"
 #define GEO GL_POINTS
-
 
 void setMap(const unsigned int, unsigned int);
 
@@ -24,6 +23,13 @@ void processInput(GLFWwindow* window,float (&player)[3])
 int main() 
 {
     
+    ShaderSource playerShader=loadShader("../include/res/player.glsl");
+    ShaderSource mapShader=loadShader("../include/res/map.glsl");
+    const char* playerV=playerShader.vertex.c_str();
+    const char* playerF=playerShader.fragment.c_str();
+    const char* mapV=mapShader.vertex.c_str();
+    const char* mapF=mapShader.fragment.c_str();
+
     GLFWwindow* window;
     glInit(&window);
     //*geometry setup///////////////////////////////////////////////////////////////
@@ -54,7 +60,7 @@ int main()
     //*shader setup//////////////////////////////////////////////////////////////
     //*vert shader//////////////////////////////////////////////////////
     unsigned int vertexShader=glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader,1,&vertexSourcePlayer,NULL);
+    glShaderSource(vertexShader,1,&playerV,NULL);
     glCompileShader(vertexShader);
 
     int success=0;
@@ -68,7 +74,7 @@ int main()
     }
 
     unsigned int mapVShader=glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(mapVShader,1,&vertexSourceMap,NULL);
+    glShaderSource(mapVShader,1,&mapV,NULL);
     glCompileShader(mapVShader);
 
    
@@ -81,7 +87,7 @@ int main()
     }
     //*frag shader//////////////////////////////////////////////////////
     unsigned int fragmentShader=glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader,1,&fragmentSourcePlayer,NULL);
+    glShaderSource(fragmentShader,1,&playerF,NULL);
     glCompileShader(fragmentShader);
  
     glGetShaderiv(fragmentShader,GL_COMPILE_STATUS,&success);
@@ -93,7 +99,7 @@ int main()
     }
 
     unsigned int mapFShader=glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(mapFShader,1,&fragmentSourceMap,NULL);
+    glShaderSource(mapFShader,1,&mapF,NULL);
     glCompileShader(mapFShader);
  
     glGetShaderiv(mapFShader,GL_COMPILE_STATUS,&success);
@@ -152,13 +158,10 @@ int main()
         float oldPos[2]={player[0],player[1]};
         processInput(window,player);
         int vertexPos=glGetUniformLocation(shaderProgram,"translate");
-        //std::cout<<player[0]<<" "<<oldPos[0]<<std::endl;
         pos[0]+=player[0]-oldPos[0];
         pos[1]+=player[1]-oldPos[1];
         glUniform3f(vertexPos,pos[0],pos[1],0);
 
-   
-        //glDrawArrays(GL_TRIANGLES,0,8*64);
         glfwSwapInterval(2);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -177,10 +180,10 @@ void setMap(const unsigned int mapBuffer, unsigned int EBO)
     int mapN[64]={
         1,1,1,1,1,1,1,1,
         1,0,0,0,0,0,0,1,
-        1,0,1,0,0,0,0,1,
-        1,0,0,0,0,0,0,1,
-        1,0,0,0,0,0,0,1,
-        1,0,0,0,1,0,0,1,
+        1,0,1,0,0,1,0,1,
+        1,0,0,0,0,1,0,1,
+        1,0,0,0,0,1,0,1,
+        1,0,0,1,1,1,0,1,
         1,0,0,0,0,0,0,1,
         1,1,1,1,1,1,1,1
     };
