@@ -1,4 +1,7 @@
 #pragma once
+#include <windows.h>
+#include <string>
+#include <iostream>
 //*set the level of logging via this file
 #define LOG_WARN_ENABLED 1
 #define LOG_INFO_ENABLED 1
@@ -28,7 +31,7 @@ void log_output(log_level level, Args&&... message)
     SetConsoleOutputCP(CP_UTF8);
     std::string levelStrings[6]={"{FATAL 💀}: ", "{ERROR 😵}: ", "{WARN ⚠️}: ",
                                  "{INFO ℹ️}: ", "{DEBUG 🐛}: ", "{TRACE}: "};
-    UINT8 color[6]={65,4,6,2,1,8};
+    UINT8 color[6]={65,4,6,2,5,8};
     HANDLE cHandle= GetStdHandle(STD_OUTPUT_HANDLE);
     
     //save prv attribute so I can get the prv settings back
@@ -67,3 +70,6 @@ void log_output(log_level level, Args&&... message)
 #else
     #define LOG_TRACE(...)
 #endif
+
+
+

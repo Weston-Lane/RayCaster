@@ -1,13 +1,11 @@
 #shader vertex
 #version 460 core
-layout (location=0) in vec3 aPos;
-//uniform vec3 translate;
+layout (location=3) in vec2 aPos;
 out vec4 vertColor;
 void main()
 {
-    vec3 new=aPos;//+translate;
-    gl_Position=vec4(new,1);
-    vertColor=vec4(1,.5,0,1);
+    gl_Position=vec4(aPos,0,0);
+    vertColor=vec4(1,1,0,0);
 }
 
 #shader fragment

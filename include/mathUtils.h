@@ -3,6 +3,10 @@
 #include <iostream>
 #include <cmath>
 #define PI 3.1415926535
+
+//!DO NOT ADD ANY MORE MEMBER VARIABLES SINCE MEMORY IS SIZED AND LAID OUT EXACTLY////////////////////////////////////////////////////////////////
+//TODO:Possibly make the pos data of the vector be independent of what is sent to opengl
+
 template< ui8 size, typename T> 
 struct vec2
 {
@@ -57,11 +61,13 @@ public:
         return *this;
     }
     friend std::ostream& operator<<(std::ostream& os, const vec3& v) {os<<"["<<v.x<<" "<<v.y<<" "<<v.z<<"]"; return os;}
-    vec3 clipSpace()
+    void clipSpace()
     {
-        return vec3(-(x/WIDTH),-(y/HEIGHT),z);
+        x=(2*x/WIDTH)-1;
+        y=1-(2*y/HEIGHT);
+        z=0;
     }
-    
+
 };
 template< ui8 size, typename T> 
 struct vec4
@@ -106,6 +112,7 @@ void clipSpace(T& px, T& py, T& pz)
     py=1-(2*py/HEIGHT);
     pz=0;
 }
+
 
 
 
