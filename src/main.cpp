@@ -10,31 +10,56 @@
 #include "logger.h"
 
 
-float px=100,py=300,pa=0,pdx=cos(pa)*2,pdy=sin(pa)*2;
+float px=50,py=100,pa=0,pdx=0,pdy=0;
 int mapX=8, mapY=8;
 constexpr int mapS=64;
+std::array<ui8,mapS> mapN ={
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,1,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0
+};
 
 void setMap(VertexBuffer&, IndexBuffer&);
 //TODO: finish casting rays dont forget to put all values into clipSpace
-void drawRays()
+void drawRays(vec3f& player, vec4f& ray)
 {
     ui32 r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
     ra=pa;
     for(r=0;r<1;r++)
     {
+        //checking if the ray hits a horizontal line
         dof=0;
         float aTan=-1/tan(ra);
-        LOG_DEBUG(aTan);
+            //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
+        if(ra>PI){ry=(((int)py>>6)<<6)-0.0001; rx=(py-ry)*aTan+px; yo=-64; xo=-yo*aTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        if(ra<PI){ry=(((int)py>>6)<<6)+64;     rx=(py-ry)*aTan+px; yo= 64; xo=-yo*aTan;}//looking up
+        if(ra==0||ra==PI) {rx=px; ry=py; dof=8;}
+        while(dof<8)
+        {
+            mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
+            if(mp<mapX*mapY&&mapN[mp]==1){break;}
+            else {rx+=xo; ry+=yo; dof++;}
+        }
+        ray.x=player.x; ray.y=player.y; ray.z=ry; ray.w=rx;
+        //clipSpace(ray.x,ray.y); 
+        clipSpace(ray.z,ray.w);
+        LOG_DEBUG(ray);
+        //LOG_DEBUG(player);
     }
 }
 void updatePlayer(vec3f& player,vec4f& ray)
 {
     //converts form pixel space to clip space
     player.x=px; player.y=py;
-    ray.x=player.x; ray.y=player.y; ray.z=px+pdx*2*5; ray.w=py+pdy*2*5;
     player.clipSpace();
-    clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
-        
+    // ray.x=player.x; ray.y=player.y; ray.z=px+pdx*2*5;ray.w=py+pdy*2*5;
+    // clipSpace(ray.z,ray.w);
+    
 }
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -118,7 +143,7 @@ int main()
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
         
         processInput(window,player,ray);
-
+        drawRays(player,ray);
         playerVBO.Bind();
         playerVBO.BufferData(&player,sizeof(player),GL_DYNAMIC_DRAW);//this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
         glBindVertexArray(VAO[0]);
@@ -133,6 +158,7 @@ int main()
 
         rayShader.Bind();
         glLineWidth(3);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
+        glLineWidth(1);
         glDrawArrays(GL_LINES,0,2);
         
         glfwSwapInterval(3);
@@ -150,22 +176,13 @@ int main()
 
 void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
 {
-    std::array<ui8,mapS> mapN ={
-        1,1,1,1,1,1,1,1,
-        1,0,0,0,0,0,0,1,
-        1,0,1,0,0,1,0,1,
-        1,0,0,1,0,1,0,1,
-        1,0,0,0,0,1,0,1,
-        1,0,0,1,1,1,0,1,
-        1,0,0,0,0,0,0,1,
-        1,1,1,1,1,1,1,1
-    };
+
     
     std::vector<vec3f>mapAttrib;
     mapAttrib.reserve(8*mapS);
     float xo,yo =0;
     float border=.005;
-    float scaleW=2.6, scaleH=2.82;
+    float scaleW=1, scaleH=1;//2.6 //2.82
     float mapSW=((float)mapS/WIDTH*scaleW);
     float mapSH=-((float)mapS/HEIGHT*scaleH);
     
