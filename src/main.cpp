@@ -132,7 +132,7 @@ int main()
         glBindVertexArray(VAO[1]);
 
         rayShader.Bind();
-        glLineWidth(3);
+        glLineWidth(3);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
         glDrawArrays(GL_LINES,0,2);
         
         glfwSwapInterval(3);
