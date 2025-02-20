@@ -48,7 +48,7 @@ void drawRays(vec3f& player, vec4f& ray)
         ray.x=player.x; ray.y=player.y; ray.z=ry; ray.w=rx;
         //clipSpace(ray.x,ray.y); 
         clipSpace(ray.z,ray.w);
-        LOG_DEBUG(ray);
+        //LOG_DEBUG(ray);
         //LOG_DEBUG(player);
     }
 }
@@ -181,10 +181,12 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
     std::vector<vec3f>mapAttrib;
     mapAttrib.reserve(8*mapS);
     float xo,yo =0;
-    float border=.005;
-    float scaleW=1, scaleH=1;//2.6 //2.82
-    float mapSW=((float)mapS/WIDTH*scaleW);
-    float mapSH=-((float)mapS/HEIGHT*scaleH);
+    float border=.002;
+    float scale=1; //scaleH=1;//2.6 //2.82
+    //TODO: figure out the scaling. only works on 1024x512 ratio.
+    float mapSW=((float)mapS/WIDTH*2);//64 as an abs value in clip space but not a pos
+    float mapSH=-((float)mapS/HEIGHT*2);
+    //LOG_DEBUG(mapSW," ", mapSH);
     
     i8 ind=0;
     
@@ -194,15 +196,15 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
         {
 
             xo=(float)x*mapS; yo=(float)y*mapS;
-            xo=(xo/(float)WIDTH*scaleW)-1; yo= 1-(yo/(float)HEIGHT*scaleH);
+            clipSpace(xo,yo);//xo=(xo/(float)WIDTH*scaleW)-1; yo= 1-(yo/(float)HEIGHT*scaleH);
             
             if(mapN[y*mapX+x]==1)
             {
            
-              mapAttrib.emplace_back(xo+border,yo,0.f);//pos
-              mapAttrib.emplace_back(xo+mapSW,yo,0.f);
-              mapAttrib.emplace_back(xo+border,yo+mapSH+border,0.f);
-              mapAttrib.emplace_back(xo+mapSW,yo+mapSH+border,0.f);
+              mapAttrib.emplace_back(xo,yo,0.f);//pos//top left
+              mapAttrib.emplace_back(xo+mapSW-border,yo,0.f);//top right
+              mapAttrib.emplace_back(xo,yo+mapSH+border,0.f);//bottom left
+              mapAttrib.emplace_back(xo+mapSW-border,yo+mapSH+border,0.f);//bottom right
 
               mapAttrib.emplace_back(1,1,1.f);//color
               mapAttrib.emplace_back(1,1,1.f);
@@ -211,10 +213,10 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
             }
             else if(mapN[y*mapX+x]==0)
             {
-              mapAttrib.emplace_back(xo+border,yo,0.f);//pos
-              mapAttrib.emplace_back(xo+mapSW,yo,0.f);
-              mapAttrib.emplace_back(xo+border,yo+mapSH+border,0.f);
-              mapAttrib.emplace_back(xo+mapSW,yo+mapSH+border,0.f);
+              mapAttrib.emplace_back(xo,yo,0.f);//pos
+              mapAttrib.emplace_back(xo+mapSW-border,yo,0.f);
+              mapAttrib.emplace_back(xo,yo+mapSH+border,0.f);
+              mapAttrib.emplace_back(xo+mapSW-border,yo+mapSH+border,0.f);
 
               mapAttrib.emplace_back(0,0,0.f);//color
               mapAttrib.emplace_back(0,0,0.f);//color

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
-#define WIDTH 1280.f
-#define HEIGHT 720.f
+#define WIDTH 1024.f
+#define HEIGHT 512.f
 
 typedef int8_t i8;
 typedef uint8_t ui8;
