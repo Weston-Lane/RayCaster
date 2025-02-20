@@ -9,27 +9,32 @@
 #include "indexBuffer.h"
 #include "logger.h"
 
-//TODO:ROTATION MOVEMENT AND GET A RAY CASTED.
-float px=100,py=300,pa=0,pdx=cos(pa)*5,pdy=sin(pa)*5;
+
+float px=100,py=300,pa=0,pdx=cos(pa)*2,pdy=sin(pa)*2;
 int mapX=8, mapY=8;
 constexpr int mapS=64;
 
 void setMap(VertexBuffer&, IndexBuffer&);
-
+//TODO: finish casting rays dont forget to put all values into clipSpace
+void drawRays()
+{
+    ui32 r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
+    ra=pa;
+    for(r=0;r<1;r++)
+    {
+        dof=0;
+        float aTan=-1/tan(ra);
+        LOG_DEBUG(aTan);
+    }
+}
 void updatePlayer(vec3f& player,vec4f& ray)
 {
     //converts form pixel space to clip space
     player.x=px; player.y=py;
-    ray.x=player.x; ray.y=player.y; ray.z=px+pdx*5; ray.w=py+pdy*5;
+    ray.x=player.x; ray.y=player.y; ray.z=px+pdx*2*5; ray.w=py+pdy*2*5;
     player.clipSpace();
-    //ray.x=(2*ray.x/WIDTH)-1; ray.y=1-(2*ray.y/HEIGHT); ray.z=(2*ray.z/WIDTH)-1; ray.w=1-(2*ray.w/HEIGHT);
-    //ray.x=(2*ray.x/WIDTH)-1; ray.y=1-(2*ray.y/HEIGHT); ray.z=player.x+.1; ray.w=player.y;
-    //ray.x=-.1; ray.y=-.1; ray.z=.1; ray.w=.1;
-    //LOG_DEBUG(ray.x," ",ray.x," ",ray.z," ",ray.w);
-    
-    
-    
-    
+    clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
+        
 }
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
@@ -65,8 +70,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
 {
     float speed=5.f;
-    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.1; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
-    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.1; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
+    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.1; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.1; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
     if(glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS){px+=pdx; py+=pdy;}
     if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS){px-=pdx; py-=pdy;}
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
@@ -90,20 +95,12 @@ int main()
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
 
-    glBindVertexArray(VAO[2]);
-    // VertexBuffer raysVBO(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
-    // glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)0);
-    // glEnableVertexAttribArray(3);
-
-    float lineVertices[] = {
-        -0.1f, -0.1f, // First vertex
-         0.1f,  0.1f  // Second vertex
-    };
-    VertexBuffer test(&lineVertices,sizeof(lineVertices),GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(3);
-
     glBindVertexArray(VAO[1]);
+    VertexBuffer raysVBO(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)0);
+    glEnableVertexAttribArray(3);
+    
+    glBindVertexArray(VAO[2]);
     VertexBuffer mapVBO;
     IndexBuffer mapEBO;
     setMap(mapVBO,mapEBO);
@@ -113,12 +110,11 @@ int main()
     Shader rayShader("../include/res/rays.glsl");
 
     //*Render Loop/////////////////////////////////////////////////////////////////////////////////////
-    //vec3f pos(py,px,0);//*old render code to get players pos. keep just in case
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         mapShader.Bind();
-        glBindVertexArray(VAO[1]);
+        glBindVertexArray(VAO[2]);
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
         
         processInput(window,player,ray);
@@ -131,24 +127,14 @@ int main()
         glPointSize(10.f);
         glDrawArrays(GL_POINTS,0,1);
 
-        //raysVBO.Bind();
-        // LOG_DEBUG(ray.x,":",ray.y);
-        // LOG_DEBUG(ray.z,":",ray.w);
-        ray.x=-.1; ray.y=-.1; ray.z=.1; ray.w=.1;
-        
-        //raysVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
-        
-        test.Bind();
-        glBindVertexArray(VAO[2]);
+        raysVBO.Bind();
+        raysVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
+        glBindVertexArray(VAO[1]);
+
         rayShader.Bind();
         glLineWidth(3);
         glDrawArrays(GL_LINES,0,2);
-
-        // float oldPos[2]={player.x,player.y};//*old code to get players pos. keep just in case
-        // pos.x+=player.x-oldPos[0];
-        // pos.y+=player.y-oldPos[1];
-        //playerShader.SetUniform3f("translate",pos);
-
+        
         glfwSwapInterval(3);
         glfwSwapBuffers(window);
         glfwPollEvents();

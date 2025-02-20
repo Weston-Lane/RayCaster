@@ -4,7 +4,7 @@ layout (location=3) in vec2 aPos;
 out vec4 vertColor;
 void main()
 {
-    gl_Position=vec4(aPos,0,0);
+    gl_Position=vec4(aPos,0,1.f);//do not put a 0 in the w pos or undefined behavior
     vertColor=vec4(1,1,0,0);
 }
 

@@ -106,11 +106,10 @@ typedef vec4<4, i32> vec4i;
 typedef vec4<4, float> vec4f;
 
 template<typename T>
-void clipSpace(T& px, T& py, T& pz)
+void clipSpace(T& px, T& py)
 {
     px=(2*px/WIDTH)-1;
     py=1-(2*py/HEIGHT);
-    pz=0;
 }
 
 
