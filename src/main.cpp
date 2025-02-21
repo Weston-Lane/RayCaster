@@ -1,6 +1,8 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <thread>
+#include <chrono>
 
 #include "shaderUtils.h"
 #include "GLinit.h"
@@ -13,8 +15,10 @@
 float px=50,py=100,pa=0,pdx=0,pdy=0;
 int mapX=8, mapY=8;
 constexpr int mapS=64;
+const double FPS=80.0;
+const double FRAME_TIME=1.0/FPS;
 std::array<ui8,mapS> mapN ={
-    0,0,0,0,0,0,0,0,
+    1,1,1,1,1,1,1,1,
     0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,
     0,0,0,1,0,0,0,0,
@@ -25,7 +29,7 @@ std::array<ui8,mapS> mapN ={
 };
 
 void setMap(VertexBuffer&, IndexBuffer&);
-//TODO: finish casting rays dont forget to put all values into clipSpace
+//TODO: finish casting rays vertical ray detection
 void drawRays(vec3f& player, vec4f& ray)
 {
     ui32 r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
@@ -45,11 +49,23 @@ void drawRays(vec3f& player, vec4f& ray)
             if(mp<mapX*mapY&&mapN[mp]==1){break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
+
+        // //checking if the ray hits a vertical line
+        // dof=0;
+        // float nTan=-tan(ra);
+        // //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
+        // if(ra>PI2){ry=(((int)py>>6)<<6)-0.0001; rx=(py-ry)*nTan+px; yo=-64; xo=-yo*nTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        // if(ra<PI){ry=(((int)py>>6)<<6)+64;     rx=(py-ry)*nTan+px; yo= 64; xo=-yo*nTan;}//looking up
+        // if(ra==0||ra==PI) {rx=px; ry=py; dof=8;}
+        // while(dof<8)
+        // {
+        //     mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
+        //     if(mp<mapX*mapY&&mapN[mp]==1){break;}
+        //     else {rx+=xo; ry+=yo; dof++;}
+        // }
+
         ray.x=player.x; ray.y=player.y; ray.z=rx; ray.w=ry;
-        //clipSpace(ray.x,ray.y); 
         clipSpace(ray.z,ray.w);
-        //LOG_DEBUG(ray);
-        //LOG_DEBUG(player);
     }
 }
 void updatePlayer(vec3f& player,vec4f& ray)
@@ -102,6 +118,10 @@ void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
     updatePlayer(player,ray);
 }
+void setFrameRate(double fps)
+{
+    
+}
 int main() 
 {
 
@@ -134,10 +154,18 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader rayShader("../include/res/rays.glsl");
 
+    //locks fps to 60
+
+    double prvTime=glfwGetTime();
+
     //*Render Loop/////////////////////////////////////////////////////////////////////////////////////
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
-
+        //*locks fps to 60/////////////////
+        double currTime=glfwGetTime();
+        if(currTime-prvTime<FRAME_TIME) {std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME-(currTime-prvTime)));}
+        prvTime+=FRAME_TIME;
+        //*locks fps to 60/////////////////
         mapShader.Bind();
         glBindVertexArray(VAO[2]);
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
@@ -160,8 +188,9 @@ int main()
         glLineWidth(3);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
         glLineWidth(1);
         glDrawArrays(GL_LINES,0,2);
-        
-        glfwSwapInterval(3);
+
+        //prvTime=glfwGetTime();
+        glfwSwapInterval(2);
         glfwSwapBuffers(window);
         glfwPollEvents();
         
