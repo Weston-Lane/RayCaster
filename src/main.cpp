@@ -45,7 +45,7 @@ void drawRays(vec3f& player, vec4f& ray)
             if(mp<mapX*mapY&&mapN[mp]==1){break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
-        ray.x=player.x; ray.y=player.y; ray.z=ry; ray.w=rx;
+        ray.x=player.x; ray.y=player.y; ray.z=rx; ray.w=ry;
         //clipSpace(ray.x,ray.y); 
         clipSpace(ray.z,ray.w);
         //LOG_DEBUG(ray);
