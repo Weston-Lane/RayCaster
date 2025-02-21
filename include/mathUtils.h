@@ -4,7 +4,7 @@
 #include <cmath>
 #define PI 3.1415926535
 #define PI2 PI/2
-#define PI2 3*PI/2
+#define PI3 3*PI/2
 //!DO NOT ADD ANY MORE MEMBER VARIABLES SINCE MEMORY IS SIZED AND LAID OUT EXACTLY////////////////////////////////////////////////////////////////
 //TODO:Possibly make the pos data of the vector be independent of what is sent to opengl
 
@@ -112,6 +112,7 @@ void clipSpace(T& px, T& py)
     px=(2*px/WIDTH)-1;
     py=1-(2*py/HEIGHT);
 }
+
 
 
 

@@ -4,7 +4,6 @@
 
 #include "logger.h"
 #include "defines.h"
-#include "mathUtils.h"
 #include "renderer.h"
 #include "GLinit.h"
 

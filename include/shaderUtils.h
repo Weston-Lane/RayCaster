@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "mathUtils.h"
+
 struct ShaderSource
 {
     std::string vertex;

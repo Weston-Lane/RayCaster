@@ -3,10 +3,11 @@
 #include <array>
 #include <thread>
 #include <chrono>
+#include <algorithm>
+#include <cfloat>
 
 #include "shaderUtils.h"
 #include "GLinit.h"
-#include "mathUtils.h"
 #include "vertexBuffer.h"
 #include "indexBuffer.h"
 #include "logger.h"
@@ -19,21 +20,27 @@ const double FPS=80.0;
 const double FRAME_TIME=1.0/FPS;
 std::array<ui8,mapS> mapN ={
     1,1,1,1,1,1,1,1,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,1,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0,
-    0,0,0,0,0,0,0,0
+    1,0,0,0,0,0,0,1,
+    1,0,1,0,0,0,0,1,
+    1,0,0,1,1,0,0,1,
+    1,0,0,0,0,0,0,1,
+    1,0,1,0,1,0,0,1,
+    1,0,0,0,0,0,0,1,
+    1,1,1,1,1,1,1,1
 };
-
+float dist(float ax, float ay, float bx, float by)
+{
+    return sqrt((bx-ax)*(bx-ax)+(by-ay)*(by-ay));
+}
 void setMap(VertexBuffer&, IndexBuffer&);
-//TODO: finish casting rays vertical ray detection
+//TODO: take time to understand what is happening and why
 void drawRays(vec3f& player, vec4f& ray)
 {
     ui32 r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
     ra=pa;
+    float distH=FLT_MAX;
+    float distV=FLT_MAX;
+    vec4f horizontalRay(px,py,px,py);
     for(r=0;r<1;r++)
     {
         //checking if the ray hits a horizontal line
@@ -46,24 +53,26 @@ void drawRays(vec3f& player, vec4f& ray)
         while(dof<8)
         {
             mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
-            if(mp<mapX*mapY&&mapN[mp]==1){break;}
+            if(mp>0&&mp<mapX*mapY&&mapN[mp]==1){horizontalRay.z=rx; horizontalRay.w=ry; distH=dist(horizontalRay.x,horizontalRay.y,horizontalRay.z,horizontalRay.w); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
-
-        // //checking if the ray hits a vertical line
-        // dof=0;
-        // float nTan=-tan(ra);
-        // //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
-        // if(ra>PI2){ry=(((int)py>>6)<<6)-0.0001; rx=(py-ry)*nTan+px; yo=-64; xo=-yo*nTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
-        // if(ra<PI){ry=(((int)py>>6)<<6)+64;     rx=(py-ry)*nTan+px; yo= 64; xo=-yo*nTan;}//looking up
-        // if(ra==0||ra==PI) {rx=px; ry=py; dof=8;}
-        // while(dof<8)
-        // {
-        //     mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
-        //     if(mp<mapX*mapY&&mapN[mp]==1){break;}
-        //     else {rx+=xo; ry+=yo; dof++;}
-        // }
-
+        vec4f verticalRay(px,py,px,py);
+        //checking if the ray hits a vertical line
+        dof=0;
+        float nTan=-tan(ra);
+        //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
+        if(ra>PI2&&ra<PI3){rx=(((int)px>>6)<<6)-0.0001; ry=(px-rx)*nTan+py; xo=-64; yo=-xo*nTan;}//looking left, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        if(ra<PI2||ra>PI3){rx=(((int)px>>6)<<6)+64;     ry=(px-rx)*nTan+py; xo= 64; yo=-xo*nTan;}//looking right
+        if(ra==0||ra==PI) {rx=px; ry=py; dof=8;}
+        while(dof<8)
+        {
+            mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
+            if(mp>0&&mp<mapX*mapY&&mapN[mp]==1){verticalRay.z=rx; verticalRay.w=ry; distV=dist(verticalRay.x,verticalRay.y,verticalRay.z,verticalRay.w); break;}
+            else {rx+=xo; ry+=yo; dof++;}
+        }
+        
+        if(distH<=distV){rx=horizontalRay.z; ry=horizontalRay.w;}
+        if(distH>distV){rx=verticalRay.z; ry=verticalRay.w;}
         ray.x=player.x; ray.y=player.y; ray.z=rx; ray.w=ry;
         clipSpace(ray.z,ray.w);
     }
