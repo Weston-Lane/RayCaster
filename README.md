@@ -24,7 +24,8 @@ Weston Lane
 
 ### ⬇️ Installation
 I use a simple build system I created with some batch scripts. These scripts set up and compile the exe **HOWEVER,** this is dependent on the [MSVC](https://visualstudio.microsoft.com/vs/community/) compiler and where it is located on your local machine.
-
+> [!IMPORTANT]
+>`MSVC COMPLILER IS REQUIRED FOR THE BUILD SYSTEM TO WORK`
 > # **setup.bat**
 > the setup.bat initializes the msvc compiler and loads the VS debugger for my workflow.
 > all that is really needed is this call
