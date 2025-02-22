@@ -13,7 +13,7 @@
 #include "logger.h"
 
 
-float px=50,py=100,pa=0,pdx=0,pdy=0;
+float px=250,py=100,pa=0,pdx=0,pdy=0;
 int mapX=8, mapY=8;
 constexpr int mapS=64;
 const double FPS=80.0;
@@ -100,7 +100,7 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         glLineWidth(6);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
         glDrawArrays(GL_LINES,0,2);//draws rays
 
-        (vert_hor) ? glUniform4f(wallColorLoc,0.f,1.f,0.5,1.f) : glUniform4f(wallColorLoc,0.5,1.f,0.5,1.f);
+        (vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f);
         //fixing fisheye
         float normDist=pa-ra; if(normDist<0){normDist+=2*PI;} if(normDist>2*PI){normDist-=2*PI;}
         distWall*=cos(normDist);
