@@ -36,20 +36,24 @@ std::array<ui8,mapS> mapN ={
     // 0,0,0,0,0,0,0,0,
     // 0,1,1,1,1,1,1,0
 };
-float dist(float ax, float ay, float bx, float by,float ra)
+float dist(float ax, float ay, float bx, float by)
 {
     return sqrt((ax-bx)*(ax-bx)+(ay-by)*(ay-by));
 }
 void setMap(VertexBuffer&, IndexBuffer&);
 //TODO: take time to understand what is happening and why
-//TODO: draw walls
+//TODO: get seperate wall colors
 void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader, unsigned int VAO)
 {
-    int r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
+    
+    int wallColorLoc=glGetUniformLocation(rayShader.getID(),"wallColor");
+
+    int r,mx,my,mp,dof; float rx,ry,ra,xo,yo,distWall;
     ra=pa-ONE_DGR*30; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
 
     for(r=0;r<60;r++)
     {
+        bool vert_hor=1;
         float distH=FLT_MAX, distV=FLT_MAX, hx=px, hy=py, vx=px, vy=py;
         //checking if the ray hits a horizontal line
         dof=0;
@@ -63,7 +67,7 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
             
             mx=((int)rx>>6); my=(int)(ry)>>6; mp=my*mapX+mx;
             
-            if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distH=dist(px,py,rx,ry,ra); break;}
+            if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distH=dist(px,py,rx,ry); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
         hx=rx; hy=ry; 
@@ -78,28 +82,42 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         while(dof<8)
         {
             mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
-            if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distV=dist(px,py,rx,ry,ra); break;}
+            if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distV=dist(px,py,rx,ry); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
         vx=rx; vy=ry;
 
-        if(distV<distH){rx=vx; ry=vy;}
-        else {rx=hx;ry=hy;}
+        if(distV<distH){rx=vx; ry=vy; distWall=distV; vert_hor=0;}
+        else {rx=hx;ry=hy; distWall=distH;vert_hor=1;}
         
         ray.x=player.x; ray.y=player.y; ray.z=rx; ray.w=ry;
         clipSpace(ray.z,ray.w);
 
-        
-        ra+=ONE_DGR; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
-
         rayVBO.Bind();
         rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO);
-
-        glLineWidth(1);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
+        glUniform4f(wallColorLoc,0.2,0.1,0.1,0.3);
+        glLineWidth(6);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
         glDrawArrays(GL_LINES,0,2);//draws rays
 
+        (vert_hor) ? glUniform4f(wallColorLoc,0.f,1.f,0.5,1.f) : glUniform4f(wallColorLoc,0.5,1.f,0.5,1.f);
+        //fixing fisheye
+        float normDist=pa-ra; if(normDist<0){normDist+=2*PI;} if(normDist>2*PI){normDist-=2*PI;}
+        distWall*=cos(normDist);
+
+        //drawing walls
+        float wallH=(mapS*320)/distWall;
+        float offset=160-wallH/2;
+        //if(wallH>320){wallH=320;}
+        ray.x=r*8+530; ray.y=offset; ray.z=r*8+530; ray.w=wallH+offset;
+        clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
         
+        rayVBO.Bind();
+        rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
+        glBindVertexArray(VAO);
+        glLineWidth(8);glDrawArrays(GL_LINES,0,2);//draws rays
+
+        ra+=ONE_DGR; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
     }
 }
 void updatePlayer(vec3f& player,vec4f& ray)
