@@ -85,7 +85,7 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
             if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distV=dist(px,py,rx,ry); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
-        vx=rx; vy=ry;
+        vx=rx; vy=ry; //check
 
         if(distV<distH){rx=vx; ry=vy; distWall=distV; vert_hor=0;}
         else {rx=hx;ry=hy; distWall=distH;vert_hor=1;}
