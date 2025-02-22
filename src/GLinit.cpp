@@ -6,7 +6,6 @@
 #include "defines.h"
 #include "renderer.h"
 #include "GLinit.h"
-
 void GLAPIENTRY
 MessageCallback( GLenum source,
                  GLenum type,
@@ -94,8 +93,9 @@ int glInit(GLFWwindow** window)
     //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    #if GL_LOG_ENABLED==1
     glDebugMessageCallback(MessageCallback, 0);
-    
+    #endif
     const char* version=(const char*)glGetString(GL_VERSION);
     LOG_INFO("OpenGL Version: "+std::string(version)+" Initialized");
     return 1;

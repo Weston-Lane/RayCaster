@@ -20,102 +20,123 @@ const double FPS=80.0;
 const double FRAME_TIME=1.0/FPS;
 std::array<ui8,mapS> mapN ={
     1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,1,
+    1,0,1,0,0,1,0,1,
     1,0,1,0,0,0,0,1,
-    1,0,0,1,1,0,0,1,
+    1,0,1,0,0,0,0,1,
+    1,0,0,0,1,0,0,1,
     1,0,0,0,0,0,0,1,
-    1,0,1,0,1,0,0,1,
     1,0,0,0,0,0,0,1,
     1,1,1,1,1,1,1,1
+    // 0,1,1,1,1,1,1,0,
+    // 0,0,0,0,0,0,0,0,
+    // 0,0,0,0,0,0,0,0,
+    // 0,0,0,0,0,0,0,0,
+    // 0,0,0,0,0,0,0,0,
+    // 0,0,0,0,0,0,0,0,
+    // 0,0,0,0,0,0,0,0,
+    // 0,1,1,1,1,1,1,0
 };
-float dist(float ax, float ay, float bx, float by)
+float dist(float ax, float ay, float bx, float by,float ra)
 {
-    return sqrt((bx-ax)*(bx-ax)+(by-ay)*(by-ay));
+    return sqrt((ax-bx)*(ax-bx)+(ay-by)*(ay-by));
 }
 void setMap(VertexBuffer&, IndexBuffer&);
 //TODO: take time to understand what is happening and why
-void drawRays(vec3f& player, vec4f& ray)
+//TODO: draw walls
+void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader, unsigned int VAO)
 {
-    ui32 r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
-    ra=pa;
-    float distH=FLT_MAX;
-    float distV=FLT_MAX;
-    vec4f horizontalRay(px,py,px,py);
-    for(r=0;r<1;r++)
+    int r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
+    ra=pa-ONE_DGR*30; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
+
+    for(r=0;r<60;r++)
     {
+        float distH=FLT_MAX, distV=FLT_MAX, hx=px, hy=py, vx=px, vy=py;
         //checking if the ray hits a horizontal line
         dof=0;
         float aTan=-1/tan(ra);
-            //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
-        if(ra>PI){ry=(((int)py>>6)<<6)-0.0001; rx=(py-ry)*aTan+px; yo=-64; xo=-yo*aTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
-        if(ra<PI){ry=(((int)py>>6)<<6)+64;     rx=(py-ry)*aTan+px; yo= 64; xo=-yo*aTan;}//looking up
-        if(ra==0||ra==PI) {rx=px; ry=py; dof=8;}
+        //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
+        if(ra>PI)     {ry=(((int)py>>6)<<6)-0.0001; rx=(py-ry)*aTan+px; yo=-64; xo=-yo*aTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        else if(ra<PI){ry=(((int)py>>6)<<6)+64;     rx=(py-ry)*aTan+px; yo=64;  xo=-yo*aTan;}//looking up
+        else          {rx=px; ry=py; dof=8;}
         while(dof<8)
         {
-            mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
-            if(mp>0&&mp<mapX*mapY&&mapN[mp]==1){horizontalRay.z=rx; horizontalRay.w=ry; distH=dist(horizontalRay.x,horizontalRay.y,horizontalRay.z,horizontalRay.w); break;}
+            
+            mx=((int)rx>>6); my=(int)(ry)>>6; mp=my*mapX+mx;
+            
+            if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distH=dist(px,py,rx,ry,ra); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
-        vec4f verticalRay(px,py,px,py);
+        hx=rx; hy=ry; 
+        
         //checking if the ray hits a vertical line
         dof=0;
         float nTan=-tan(ra);
         //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
-        if(ra>PI2&&ra<PI3){rx=(((int)px>>6)<<6)-0.0001; ry=(px-rx)*nTan+py; xo=-64; yo=-xo*nTan;}//looking left, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
-        if(ra<PI2||ra>PI3){rx=(((int)px>>6)<<6)+64;     ry=(px-rx)*nTan+py; xo= 64; yo=-xo*nTan;}//looking right
-        if(ra==0||ra==PI) {rx=px; ry=py; dof=8;}
+        if(ra>PI2&&ra<PI3)     {rx=(((int)px>>6)<<6)-0.0001;      ry=(px-rx)*nTan+py; xo=-64; yo=-xo*nTan;}//looking left, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        else if(ra<PI2||ra>PI3){rx=(((int)px>>6)<<6)+64;          ry=(px-rx)*nTan+py; xo=64;  yo=-xo*nTan;}//looking right
+        else                   {rx=px; ry=py; dof=8;}
         while(dof<8)
         {
             mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
-            if(mp>0&&mp<mapX*mapY&&mapN[mp]==1){verticalRay.z=rx; verticalRay.w=ry; distV=dist(verticalRay.x,verticalRay.y,verticalRay.z,verticalRay.w); break;}
+            if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distV=dist(px,py,rx,ry,ra); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
+        vx=rx; vy=ry;
+
+        if(distV<distH){rx=vx; ry=vy;}
+        else {rx=hx;ry=hy;}
         
-        if(distH<=distV){rx=horizontalRay.z; ry=horizontalRay.w;}
-        if(distH>distV){rx=verticalRay.z; ry=verticalRay.w;}
         ray.x=player.x; ray.y=player.y; ray.z=rx; ray.w=ry;
         clipSpace(ray.z,ray.w);
+
+        
+        ra+=ONE_DGR; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
+
+        rayVBO.Bind();
+        rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
+        glBindVertexArray(VAO);
+
+        glLineWidth(1);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
+        glDrawArrays(GL_LINES,0,2);//draws rays
+
+        
     }
 }
 void updatePlayer(vec3f& player,vec4f& ray)
 {
-    //converts form pixel space to clip space
     player.x=px; player.y=py;
-    player.clipSpace();
-    // ray.x=player.x; ray.y=player.y; ray.z=px+pdx*2*5;ray.w=py+pdy*2*5;
-    // clipSpace(ray.z,ray.w);
-    
+    player.clipSpace();   
 }
-void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if(action==GLFW_PRESS)
-    {
-        switch(key)
-        {
-            case GLFW_KEY_D:
-            {
+// void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+// {
+//     if(action==GLFW_PRESS)
+//     {
+//         switch(key)
+//         {
+//             case GLFW_KEY_D:
+//             {
 
-            }break;
-            case GLFW_KEY_A:
-            {
+//             }break;
+//             case GLFW_KEY_A:
+//             {
 
-            }break;
-            case GLFW_KEY_W:
-            {
+//             }break;
+//             case GLFW_KEY_W:
+//             {
 
-            }break;
-            case GLFW_KEY_S:
-            {
+//             }break;
+//             case GLFW_KEY_S:
+//             {
 
-            }break;
-            case GLFW_KEY_ESCAPE:
-            {
+//             }break;
+//             case GLFW_KEY_ESCAPE:
+//             {
 
-            }break;
-        }    
-    }
+//             }break;
+//         }    
+//     }
 
-}
+// }
 //TODO: PLAYER MOVEMENT IS RENDERED IN IMMEDIATE MODE (REBUFFERS PLAYER DATA EVERY FRAME). MAYBE CHANGE TO TRANSLATION MATRIX LATER
 void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
 {
@@ -170,17 +191,17 @@ int main()
     //*Render Loop/////////////////////////////////////////////////////////////////////////////////////
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
-        //*locks fps to 60/////////////////
+        //*locks fps to set fps/////////////////
         double currTime=glfwGetTime();
         if(currTime-prvTime<FRAME_TIME) {std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME-(currTime-prvTime)));}
         prvTime+=FRAME_TIME;
-        //*locks fps to 60/////////////////
+        //*locks fps to set fps/////////////////
         mapShader.Bind();
         glBindVertexArray(VAO[2]);
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
         
         processInput(window,player,ray);
-        drawRays(player,ray);
+        
         playerVBO.Bind();
         playerVBO.BufferData(&player,sizeof(player),GL_DYNAMIC_DRAW);//this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
         glBindVertexArray(VAO[0]);
@@ -188,15 +209,8 @@ int main()
         playerShader.Bind(); 
         glPointSize(10.f);
         glDrawArrays(GL_POINTS,0,1);
-
-        raysVBO.Bind();
-        raysVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
-        glBindVertexArray(VAO[1]);
-
         rayShader.Bind();
-        glLineWidth(3);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
-        glLineWidth(1);
-        glDrawArrays(GL_LINES,0,2);
+        drawRays(player,ray,raysVBO,rayShader,VAO[1]);
 
         //prvTime=glfwGetTime();
         glfwSwapInterval(2);
