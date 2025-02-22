@@ -41,7 +41,7 @@ float dist(float ax, float ay, float bx, float by)
     return sqrt((ax-bx)*(ax-bx)+(ay-by)*(ay-by));
 }
 void setMap(VertexBuffer&, IndexBuffer&);
-//TODO: take time to understand what is happening and why
+
 //TODO: get seperate wall colors
 void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader, unsigned int VAO)
 {
