@@ -46,9 +46,10 @@ void setMap(VertexBuffer&, IndexBuffer&);
 //TODO: get seperate wall colors
 void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader, unsigned int VAO)
 {
+    vec4f texCoord;
     int blockSide=6;//exponet for a power of 2, so each block is 64x64 pixels, 2^6
     int wallColorLoc=glGetUniformLocation(rayShader.getID(),"wallColor");
-    int texCoordLoc=glGetUniformLocation(rayShader.getID(),"texCoord");
+    int fogLoc=glGetUniformLocation(rayShader.getID(),"uFog");
     int wallIncLoc=glGetUniformLocation(rayShader.getID(),"y");
     int r,mx,my,mp,dof; float rx,ry,ra,xo,yo,distWall;
     ra=pa-ONE_DGR*30; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
@@ -104,16 +105,19 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         rayVBO.Bind();
         rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO);
-        glUniform4f(wallColorLoc,0.2,0.1,0.1,1);
+        //glUniform4f(wallColorLoc,0.2,0.1,0.1,1);
         glLineWidth(1);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
         glDrawArrays(GL_LINES,0,2);//draws rays
         //distance increases fog
         
-        float fogScale=1-distWall/(float)(WIDTH/1.5);
-        (vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f*fogScale) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f*fogScale);
+        float fogScale=1-distWall/(float)(WIDTH/2);
+        glUniform1f(fogLoc,fogScale);
+        //(vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f*fogScale) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f*fogScale);
         
-        //(vert_hor) ? glUniform2f(texCoordLoc,.5,0) : glUniform2f(texCoordLoc,.5,0);
-        
+        //(vert_hor) ? glUniform2f(texCoordLoc,(float)((int)rx%64)/64,.9) : glUniform2f(texCoordLoc,(float)((int)ry%64)/64,.9);
+        float texX=0;
+        (vert_hor) ? texX=(float)((int)rx%64)/64 : texX=(float)((int)ry%64)/64;
+        texCoord.x=texX; texCoord.y=0; texCoord.z=texX; texCoord.w=1;
         //fixing fisheye
         float normDist=pa-ra; if(normDist<0){normDist+=2*PI;} if(normDist>2*PI){normDist-=2*PI;}
         distWall*=cos(normDist);
@@ -124,14 +128,14 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         if(wallH>320*mapS){wallH=320*mapS;}
 
         ray.x=r*8+530; ray.y=offset; ray.z=r*8+530; ray.w=wallH+offset;
-        //ray.x=r*10+400; ray.y=offset; ray.z=r*10+400; ray.w=wallH+offset;q
-        // LOG_DEBUG(rx," : ",(int)rx%64);
-        // LOG_DEBUG(ry," : ",(int)ry%64);
+        //ray.x=r*10+400; ray.y=offset; ray.z=r*10+400; ray.w=wallH+offset;
+        // LOG_DEBUG(rx," : ",(float)((int)rx%64)/64);
+        // LOG_DEBUG(ry," : ",(float)((int)ry%64)/64);
         clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
-        //float wall[2]={ray.x,0};
         rayVBO.Bind();
-        rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
-        //rayVBO.BufferData(&wall,sizeof(wall),GL_DYNAMIC_DRAW);
+        vec4f buffer[2]={ray,texCoord};
+        //rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
+        rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO);
         // for(float y=0;y<wallH;y++)
         // {   
@@ -184,8 +188,8 @@ void updatePlayer(vec3f& player,vec4f& ray)
 void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
 {
     float speed=5.f;
-    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.1; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
-    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.1; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.05; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.05; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
     if(glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS){px+=pdx; py+=pdy;}
     if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS){px-=pdx; py-=pdy;}
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
@@ -219,6 +223,8 @@ int main()
     VertexBuffer raysVBO(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
     glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)0);
     glEnableVertexAttribArray(3);
+    glVertexAttribPointer(4,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)sizeof(vec4f));
+    glEnableVertexAttribArray(4);
     
     glBindVertexArray(VAO[2]);
     VertexBuffer mapVBO;
@@ -229,7 +235,7 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader rayShader("../include/res/rays.glsl");
 
-    Texture2D redBrick("../assets/redbrick.png");//cannot create textures before gl context
+    Texture2D redBrick("../assets/128x128/burn2.png");//cannot create textures before gl context
 
     //locks fps to 60
 
@@ -352,10 +358,11 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
     }
     
     mapVBO.BufferData(mapAttrib.data(),mapAttrib.size()*sizeof(vec3f),GL_STATIC_DRAW);
+    mapEBO.BufferData(indices.data(),indices.size(),GL_STATIC_DRAW);
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,sizeof(vec3f),(void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,sizeof(vec3f),(void*)(4*sizeof(vec3f)));
     glEnableVertexAttribArray(2);
   
-    mapEBO.BufferData(indices.data(),indices.size(),GL_STATIC_DRAW); 
+     
 }

@@ -7,7 +7,7 @@
 Texture2D::Texture2D(const std::string& path)
     :m_rendererID(0), m_filePath(path), m_localBuffer(0), m_width(0), m_height(0), m_BPP(0)
 {
-    stbi_set_flip_vertically_on_load(1);
+    //stbi_set_flip_vertically_on_load(1);
     m_localBuffer=stbi_load(path.c_str(),&m_width,&m_height,&m_BPP,4);
     if (!m_localBuffer) 
     {
@@ -21,8 +21,8 @@ Texture2D::Texture2D(const std::string& path)
     glGenTextures(1,&m_rendererID);
     glBindTexture(GL_TEXTURE_2D, m_rendererID);
     
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);//may need to change to gl_nearest
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);//mag filter for larger area than text
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);//may need to change to gl_nearest
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);//mag filter for larger area than text
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE);//if texture foes outside of area
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
 
