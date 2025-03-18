@@ -96,6 +96,12 @@ void Shader::UnBind() const
 }
 
 //set uniform
+void Shader::SetUniform1i(const std::string& name, int data)
+{
+    const char* nameC=name.c_str();
+    unsigned int loc=glGetUniformLocation(m_rendererID,nameC);
+    glUniform1i(loc,data);
+}
 void Shader::SetUniform2f(const std::string& name, vec2f& data)
 {
     const char* nameC=name.c_str();

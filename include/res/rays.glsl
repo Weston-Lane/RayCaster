@@ -5,15 +5,19 @@ uniform vec4 wallColor;
 out vec4 vertColor;
 void main()
 {
-    gl_Position=vec4(aPos,0,1.f);//do not put a 0 in the w pos or undefined behavior
+    vec2 pos=aPos;
+    gl_Position=vec4(pos,0,1.f);//do not put a 0 in the w pos or undefined behavior//gl_Position=vec4(aPos,0,1.f);//do not put a 0 in the w pos or undefined behavior
     vertColor=wallColor;
 }
 
 #shader fragment
 #version 460 core
 in vec4 vertColor;
+//uniform vec2 texCoord;
+//uniform sampler2D uTexture;
 out vec4 fragColor;
 void main()
 {
+    //fragColor=texture(uTexture,texCoord);
     fragColor=vertColor;
 }

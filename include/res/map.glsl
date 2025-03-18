@@ -12,9 +12,12 @@ void main()
 #shader fragment
 #version 460 core
 in vec3 vertColor;
+//uniform sampler2D uTexture;
 out vec4 fragColor;
 void main()
 {
-    fragColor.a=vertColor.x;
+    //fragColor.a=vertColor.x;
+
     fragColor=vec4(vertColor,vertColor.x);
+    //fragColor=texture(uTexture,vertColor.xy);
 }

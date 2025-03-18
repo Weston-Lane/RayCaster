@@ -20,16 +20,14 @@ class Shader
         void UnBind() const;
 
         //set uniform
+        void SetUniform1i(const std::string& name, int data);
         void SetUniform2f(const std::string& name, vec2f& data);
         void SetUniform3f(const std::string& name, vec3f& data);
         void SetUniform4f(const std::string& name, vec4f& data);
 
-        inline unsigned int getID()
-        {
-            return m_rendererID;
-        }
-
+        inline unsigned int getID() {return m_rendererID;}
         inline std::string& GetFilePath(){return m_filePath;}
+
     private:
 
         ShaderSource loadShader(const std::string& path);
@@ -37,7 +35,7 @@ class Shader
         unsigned int CreateShader(std::string& vertex, std::string& fragment);
         std::string m_filePath;
         unsigned int m_rendererID;
-        unsigned int GetUniformLocation(const std::string& name);
+        int GetUniformLocation(const std::string& name);
 };
 
 

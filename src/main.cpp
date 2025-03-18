@@ -11,13 +11,14 @@
 #include "vertexBuffer.h"
 #include "indexBuffer.h"
 #include "logger.h"
+#include "texture.h"
 
-
-float px=250,py=100,pa=0,pdx=0,pdy=0;
+float px=200,py=100,pa=0,pdx=0,pdy=0;
 int mapX=8, mapY=8;
 constexpr int mapS=64;
 const double FPS=80.0;
 const double FRAME_TIME=1.0/FPS;
+
 std::array<ui8,mapS> mapN ={
     1,1,1,1,1,1,1,1,
     1,0,1,0,0,1,0,1,
@@ -45,9 +46,10 @@ void setMap(VertexBuffer&, IndexBuffer&);
 //TODO: get seperate wall colors
 void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader, unsigned int VAO)
 {
-    
+    int blockSide=6;//exponet for a power of 2, so each block is 64x64 pixels, 2^6
     int wallColorLoc=glGetUniformLocation(rayShader.getID(),"wallColor");
-
+    int texCoordLoc=glGetUniformLocation(rayShader.getID(),"texCoord");
+    int wallIncLoc=glGetUniformLocation(rayShader.getID(),"y");
     int r,mx,my,mp,dof; float rx,ry,ra,xo,yo,distWall;
     ra=pa-ONE_DGR*30; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
 
@@ -59,13 +61,16 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         dof=0;
         float aTan=-1/tan(ra);
         //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
-        if(ra>PI)     {ry=(((int)py>>6)<<6)-0.0001; rx=(py-ry)*aTan+px; yo=-64; xo=-yo*aTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
-        else if(ra<PI){ry=(((int)py>>6)<<6)+64;     rx=(py-ry)*aTan+px; yo=64;  xo=-yo*aTan;}//looking up
+        if(ra>PI)     {ry=(((int)py>>blockSide)<<blockSide)-0.0001; rx=(py-ry)*aTan+px; yo=-pow(2,blockSide); xo=-yo*aTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        else if(ra<PI){ry=(((int)py>>blockSide)<<blockSide)+pow(2,blockSide);     rx=(py-ry)*aTan+px; yo=pow(2,blockSide);  xo=-yo*aTan;}//looking up
+        // if(ra>PI)     {ry=(((int)py>>5)<<5)-0.0001; rx=(py-ry)*aTan+px; yo=-32; xo=-yo*aTan;}//looking down, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        // else if(ra<PI){ry=(((int)py>>5)<<5)+32;     rx=(py-ry)*aTan+px; yo=32;  xo=-yo*aTan;}//looking up
         else          {rx=px; ry=py; dof=8;}
         while(dof<8)
         {
             
-            mx=((int)rx>>6); my=(int)(ry)>>6; mp=my*mapX+mx;
+            mx=((int)rx>>blockSide); my=(int)(ry)>>blockSide; mp=my*mapX+mx;
+            //mx=((int)rx>>5); my=(int)(ry)>>5; mp=my*mapX+mx;
             
             if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distH=dist(px,py,rx,ry); break;}
             else {rx+=xo; ry+=yo; dof++;}
@@ -76,12 +81,15 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         dof=0;
         float nTan=-tan(ra);
         //rays y pos rounded to 64th val //rayx by dist between playery and rayY *arcTan + playerx offset // calculates the next ray offset by sub next 64 pix and x offset
-        if(ra>PI2&&ra<PI3)     {rx=(((int)px>>6)<<6)-0.0001;      ry=(px-rx)*nTan+py; xo=-64; yo=-xo*nTan;}//looking left, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
-        else if(ra<PI2||ra>PI3){rx=(((int)px>>6)<<6)+64;          ry=(px-rx)*nTan+py; xo=64;  yo=-xo*nTan;}//looking right
+        if(ra>PI2&&ra<PI3)     {rx=(((int)px>>blockSide)<<blockSide)-0.0001;                    ry=(px-rx)*nTan+py; xo=-pow(2,blockSide); yo=-xo*nTan;}//looking left, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        else if(ra<PI2||ra>PI3){rx=(((int)px>>blockSide)<<blockSide)+pow(2,blockSide);          ry=(px-rx)*nTan+py; xo=pow(2,blockSide);  yo=-xo*nTan;}//looking right
+        // if(ra>PI2&&ra<PI3)     {rx=(((int)px>>5)<<5)-0.0001;      ry=(px-rx)*nTan+py; xo=-32; yo=-xo*nTan;}//looking left, >>6 divides by 64, <<6 mult by 64 to round to nearest 64th val. -0.00001 for accuracy
+        // else if(ra<PI2||ra>PI3){rx=(((int)px>>5)<<5)+32;          ry=(px-rx)*nTan+py; xo=32;  yo=-xo*nTan;}//looking right
         else                   {rx=px; ry=py; dof=8;}
         while(dof<8)
         {
-            mx=(int)(rx)>>6; my=(int)(ry)>>6; mp=my*mapX+mx;
+            mx=(int)(rx)>>blockSide; my=(int)(ry)>>blockSide; mp=my*mapX+mx;
+            //mx=(int)(rx)>>5; my=(int)(ry)>>5; mp=my*mapX+mx;
             if(mp>=0 && mp<mapX*mapY && mapN[mp]==1){distV=dist(px,py,rx,ry); break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
@@ -96,11 +104,16 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         rayVBO.Bind();
         rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO);
-        glUniform4f(wallColorLoc,0.2,0.1,0.1,0.3);
-        glLineWidth(6);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
+        glUniform4f(wallColorLoc,0.2,0.1,0.1,1);
+        glLineWidth(1);//!glLineWidth is deprecated on certain hardware. Intel Iris is one of them
         glDrawArrays(GL_LINES,0,2);//draws rays
-
-        (vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f);
+        //distance increases fog
+        
+        float fogScale=1-distWall/(float)(WIDTH/1.5);
+        (vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f*fogScale) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f*fogScale);
+        
+        //(vert_hor) ? glUniform2f(texCoordLoc,.5,0) : glUniform2f(texCoordLoc,.5,0);
+        
         //fixing fisheye
         float normDist=pa-ra; if(normDist<0){normDist+=2*PI;} if(normDist>2*PI){normDist-=2*PI;}
         distWall*=cos(normDist);
@@ -108,15 +121,27 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         //drawing walls
         float wallH=(mapS*320)/distWall;
         float offset=160-wallH/2;
-        //if(wallH>320){wallH=320;}
+        if(wallH>320*mapS){wallH=320*mapS;}
+
         ray.x=r*8+530; ray.y=offset; ray.z=r*8+530; ray.w=wallH+offset;
+        //ray.x=r*10+400; ray.y=offset; ray.z=r*10+400; ray.w=wallH+offset;q
+        // LOG_DEBUG(rx," : ",(int)rx%64);
+        // LOG_DEBUG(ry," : ",(int)ry%64);
         clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
-        
+        //float wall[2]={ray.x,0};
         rayVBO.Bind();
         rayVBO.BufferData(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
+        //rayVBO.BufferData(&wall,sizeof(wall),GL_DYNAMIC_DRAW);
         glBindVertexArray(VAO);
-        glLineWidth(8);glDrawArrays(GL_LINES,0,2);//draws rays
+        // for(float y=0;y<wallH;y++)
+        // {   
+        //     glUniform2f(wallIncLoc,ray.x, y+offset);
+        //     glPointSize(8); glDrawArrays(GL_POINTS,0,1);//draws rays  //glDrawArrays(GL_POINTS,0,2);//draws rays  
+        // }
 
+        //glLineWidth(10);glDrawArrays(GL_LINES,0,2);//draws rays
+        glLineWidth(8);glDrawArrays(GL_LINES,0,2);//draws rays
+        //glPointSize(8); glDrawArrays(GL_POINTS,0,1);//draws rays  //glDrawArrays(GL_POINTS,0,2);//draws rays  
         ra+=ONE_DGR; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
     }
 }
@@ -175,6 +200,8 @@ int main()
 
     GLFWwindow* window;
     glInit(&window);
+
+
     //*geometry setup///////////////////////////////////////////////////////////////
     vec3f player(px,py,0);
     vec4f ray;
@@ -202,6 +229,8 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader rayShader("../include/res/rays.glsl");
 
+    Texture2D redBrick("../assets/redbrick.png");//cannot create textures before gl context
+
     //locks fps to 60
 
     double prvTime=glfwGetTime();
@@ -214,12 +243,25 @@ int main()
         if(currTime-prvTime<FRAME_TIME) {std::this_thread::sleep_for(std::chrono::duration<double>(FRAME_TIME-(currTime-prvTime)));}
         prvTime+=FRAME_TIME;
         //*locks fps to set fps/////////////////
-        mapShader.Bind();
-        glBindVertexArray(VAO[2]);
-        glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
+
         
         processInput(window,player,ray);
         
+
+        rayShader.Bind();
+
+        redBrick.Bind(0);
+        rayShader.SetUniform1i("uTexture",0);
+
+        drawRays(player,ray,raysVBO,rayShader,VAO[1]);
+
+        mapShader.Bind();
+        // redBrick.Bind(0);
+        // mapShader.SetUniform1i("uTexture",0);
+
+        glBindVertexArray(VAO[2]);
+        glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
+
         playerVBO.Bind();
         playerVBO.BufferData(&player,sizeof(player),GL_DYNAMIC_DRAW);//this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
         glBindVertexArray(VAO[0]);
@@ -227,9 +269,6 @@ int main()
         playerShader.Bind(); 
         glPointSize(10.f);
         glDrawArrays(GL_POINTS,0,1);
-        rayShader.Bind();
-        drawRays(player,ray,raysVBO,rayShader,VAO[1]);
-
         //prvTime=glfwGetTime();
         glfwSwapInterval(2);
         glfwSwapBuffers(window);
@@ -254,8 +293,8 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
     float border=.002;
     float scale=1; //scaleH=1;//2.6 //2.82
     //TODO: figure out the scaling. only works on 1024x512 ratio.
-    float mapSW=((float)mapS/WIDTH*2);//64 as an abs value in clip space but not a pos
-    float mapSH=-((float)mapS/HEIGHT*2);
+    float mapSW=((float)mapS/WIDTH*2)*scale;//64 as an abs value in clip space but not a pos
+    float mapSH=-((float)mapS/HEIGHT*2)*scale;// *2 since clip space goes from [-1,1]
     //LOG_DEBUG(mapSW," ", mapSH);
     
     i8 ind=0;
@@ -265,7 +304,7 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
         for(size_t x=0;x<mapX;x++)
         {
 
-            xo=(float)x*mapS; yo=(float)y*mapS;
+            xo=(float)x*mapS*scale; yo=(float)y*mapS*scale;
             clipSpace(xo,yo);//xo=(xo/(float)WIDTH*scaleW)-1; yo= 1-(yo/(float)HEIGHT*scaleH);
             
             if(mapN[y*mapX+x]==1)
@@ -280,18 +319,22 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
               mapAttrib.emplace_back(1,1,1.f);
               mapAttrib.emplace_back(1,1,1.f);
               mapAttrib.emplace_back(1,1,1.f);
+            // mapAttrib.emplace_back(0,1,1.f);//color
+            // mapAttrib.emplace_back(1,1,1.f);
+            // mapAttrib.emplace_back(0,0,1.f);
+            // mapAttrib.emplace_back(1,0,1.f);
             }
             else if(mapN[y*mapX+x]==0)
             {
               mapAttrib.emplace_back(xo,yo,0.f);//pos
-              mapAttrib.emplace_back(xo+mapSW-border,yo,0.f);
-              mapAttrib.emplace_back(xo,yo+mapSH+border,0.f);
-              mapAttrib.emplace_back(xo+mapSW-border,yo+mapSH+border,0.f);
+              mapAttrib.emplace_back(xo+mapSW,yo,0.f);
+              mapAttrib.emplace_back(xo,yo+mapSH,0.f);
+              mapAttrib.emplace_back(xo+mapSW,yo+mapSH,0.f);
 
-              mapAttrib.emplace_back(0,0,0.f);//color
-              mapAttrib.emplace_back(0,0,0.f);//color
-              mapAttrib.emplace_back(0,0,0.f);//color
-              mapAttrib.emplace_back(0,0,0.f);//color
+              mapAttrib.emplace_back(.5,.5,.5);//color
+              mapAttrib.emplace_back(.5,.5,.5);//color
+              mapAttrib.emplace_back(.5,.5,.5);//color
+              mapAttrib.emplace_back(.5,.5,.5);//color
             }
             ind+=8; 
         }
