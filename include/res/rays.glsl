@@ -1,7 +1,7 @@
 #shader vertex
 #version 460 core
-layout (location=3) in vec2 aPos;
-layout (location=4) in vec2 aTex;
+layout (location=0) in vec2 aPos;
+layout (location=1) in vec2 aTex;
 //uniform vec4 wallColor;
 //out vec4 vertColor;
 out vec2 texCoord;
