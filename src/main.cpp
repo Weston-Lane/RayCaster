@@ -61,8 +61,21 @@ float dist(float ax, float ay, float bx, float by)
     return sqrt((ax-bx)*(ax-bx)+(ay-by)*(ay-by));
 }
 
+void drawTerrain(std::vector<vec2f>& walls, VertexBuffer& wallVBO, ui32 wallVAO, 
+                 std::vector<vec2f>& floors, VertexBuffer& floorVBO, ui32 floorVAO, ui8 lineWidth)
+{
+        wallVBO.Bind();
+        wallVBO.BufferData(walls.data(),walls.size()*sizeof(vec2f),GL_DYNAMIC_DRAW);
+        glBindVertexArray(wallVAO);
+        glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,walls.size()/2);//draws rays
 
-void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader, unsigned int VAO)
+        floorVBO.Bind();
+        glBindVertexArray(floorVAO);
+        floorVBO.BufferData(floors.data(),floors.size()*sizeof(vec2f),GL_DYNAMIC_DRAW);
+        glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,floors.size()/2);//draws rays
+}
+void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO, 
+                VertexBuffer& floorVBO, ui32 floorVAO, Shader& terrainShader)
 {
     ui8 blockSide=8;//exponet for a power of 2, so each block is 64x64 pixels, 2^6
     i16 blockSidePx=pow(2,blockSide);
@@ -71,14 +84,21 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
     ui8 lineWidth=10;
     float rayPerDeg=ONE_DGR/3;
     float rayOff=1/rayPerDeg*ONE_DGR*30;//(one deg/3*x=one deg*30)//formula for having a 30 deg offset no matter the rayPerDeg
-    int wallColorLoc=glGetUniformLocation(rayShader.getID(),"wallColor");
-    int fogLoc=glGetUniformLocation(rayShader.getID(),"uFog");
+    // int wallColorLoc=glGetUniformLocation(terrainShader.getID(),"wallColor");
+    int fogLoc=glGetUniformLocation(terrainShader.getID(),"uFog");
 
     vec4f texCoord;
-    
+    vec4f ray; 
+    std::vector<vec2f> walls; 
+    std::vector<vec2f> floors;
+    walls.reserve(2*WIDTH);
+    floors.reserve(2*WIDTH);
+
     int r,mx,my,mp,dof=0; 
     double rx,ry,ra,xo,yo,distWall=0;
     ra=pa-rayPerDeg*rayOff;
+
+ 
 
     if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
 
@@ -133,12 +153,14 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         // glDrawArrays(GL_LINES,0,2);//draws rays
 
         //distance increases fog
-        float fogScale=1;//1-distWall/(float)(WIDTH*1.5);
+        float fogScale=1;//-distWall/(float)(WIDTH*2);
+
         glUniform1f(fogLoc,fogScale);
         //(vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f*fogScale) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f*fogScale);
         float texX=0;
         (vert_hor) ? texX=(float)((int)rx%blockSidePx)/blockSidePx : texX=(float)((int)ry%blockSidePx)/blockSidePx;
         texCoord.x=texX; texCoord.y=0; texCoord.z=texX; texCoord.w=1;
+    
         //fixing fisheye
         float normDist=pa-ra; if(normDist<0){normDist+=2*PI;} if(normDist>2*PI){normDist-=2*PI;}
         distWall*=cos(normDist);
@@ -148,13 +170,25 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         float offset=HEIGHT/2-wallH/2;
         if(wallH>HEIGHT*mapS){wallH=HEIGHT*mapS;}
 
+                //wall top (x,y)                         //wall bottom (x,y)
         ray.x=r*lineWidth; ray.y=offset; ray.z=r*lineWidth; ray.w=wallH+offset;
         clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
-        rayVBO.Bind();
-        vec4f buffer[2]={ray,texCoord};
-        rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
-        glBindVertexArray(VAO);
-        glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,2);//draws rays
+
+        //if(ray.x>=0&&ray.y>=1){LOG_DEBUG("wall out of range ",ray.x," ",ray.y);}
+
+        // walls.emplace_back(ray.x,ray.y); walls.emplace_back(ray.x,ray.y);
+        // walls.emplace_back(ray.z,ray.w); walls.emplace_back(ray.z,ray.w);
+        walls.emplace_back(ray.x,ray.y); walls.emplace_back(texCoord.x,texCoord.y);
+        walls.emplace_back(ray.z,ray.w); walls.emplace_back(texCoord.z,texCoord.w);
+        
+        // walls.push_back(ray);
+        // walls.push_back(texCoord);
+
+        // rayVBO.Bind();
+        // vec4f buffer[2]={ray,texCoord};
+        // rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
+        // glBindVertexArray(VAO);
+        // glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,2);//draws rays
 
         //draw floors
         for(int y=offset+wallH;y<HEIGHT;y++)
@@ -164,18 +198,20 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
             float dy=y-(HEIGHT/2), deg=-ra, fishFix=cos(ta);
             float tx=px/4.4 + cos(deg)*474*64/(dy*fishFix);
             float ty=py/4.4 - sin(deg)*474*64/(dy*fishFix);
-                          ray.x=r*lineWidth; ray.y=y;
-            ray.z=r*lineWidth; ray.w=y;
-            clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
+            ray.x=r*lineWidth; ray.y=y;
+            //ray.z=r*lineWidth; ray.w=y;
+            clipSpace(ray.x,ray.y);
             texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64;
-            texCoord.z=(float)((int)tx%64)/64; texCoord.w=(float)((int)ty%64)/64;
+            //texCoord.z=(float)((int)tx%64)/64; texCoord.w=(float)((int)ty%64)/64;
             //int mp=mapN[(int)(ty/16.0)*mapX+(int)(tx/16.0)];
+            
+            floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y);
 
-            buffer[0]=ray;
-            buffer[1]=texCoord;
-            rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
-            //float c=All_Textures[((int)(ty)&31)*32 + ((int)(tx)&31)+mp]*0.7;
-            glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,1);//draws rays
+            // buffer[0]=ray;
+            // buffer[1]=texCoord;
+            // rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
+            // //float c=All_Textures[((int)(ty)&31)*32 + ((int)(tx)&31)+mp]*0.7;
+            // glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,1);//draws rays
             //glColor3f(c/1.3,c/1.3,c);glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y);glEnd();
         
             
@@ -190,16 +226,19 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
             float ty=py/4.4 - sin(deg)*474*64/dy/raFix;
             //int mp=mapN[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
             ray.x=r*lineWidth; ray.y=y;
-            ray.z=r*lineWidth; ray.w=y;
-            clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
+            //ray.z=r*lineWidth; ray.w=y;
+            clipSpace(ray.x,ray.y);
             texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64; 
-            texCoord.z=(float)((int)tx%64)/64; texCoord.w=(float)((int)ty%64)/64;
+            //texCoord.z=(float)((int)tx%64)/64; texCoord.w=(float)((int)ty%64)/64;
+
+            floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y);
+
             //LOG_DEBUG(ray.x," ",ray.y);
-            buffer[0]=ray;
-            buffer[1]=texCoord;
-            rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
-            //float c=All_Textures[((int)(ty)&31)*32 + ((int)(tx)&31)+mp]*0.7;
-            glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,1);//draws rays
+            // buffer[0]=ray;
+            // buffer[1]=texCoord;
+            // rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
+            // //float c=All_Textures[((int)(ty)&31)*32 + ((int)(tx)&31)+mp]*0.7;
+            // glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,1);//draws rays
             //glColor3f(c/1.3,c/1.3,c);glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y);glEnd();
         }
         
@@ -207,6 +246,13 @@ void drawRays(vec3f& player, vec4f& ray, VertexBuffer& rayVBO, Shader& rayShader
         ra+=rayPerDeg; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
 
     }
+
+    // ray.x=0; ray.y=0; ray.z=0; ray.w=1;
+    // texCoord.x=0; texCoord.y=0; texCoord.z=.5; texCoord.w=1;
+    // walls.push_back(ray);
+    // walls.push_back(texCoord);
+
+    drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth);
 }
 void updatePlayer(vec3f& player,vec4f& ray)
 {
@@ -247,8 +293,8 @@ void updatePlayer(vec3f& player,vec4f& ray)
 void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
 {
     float speed=5.f;
-    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.05; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
-    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.05; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.03; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.03; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
     if(glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS){px+=pdx*speed; py+=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS){px-=pdx*speed; py-=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
@@ -270,8 +316,8 @@ int main()
     vec4f ray;
     player.clipSpace();
     
-    unsigned int VAO[3];
-    glGenVertexArrays(3,VAO);
+    unsigned int VAO[4];
+    glGenVertexArrays(4,VAO);
 
     glBindVertexArray(VAO[0]);
     VertexBuffer playerVBO(&player,sizeof(player),GL_DYNAMIC_DRAW);//you only need to send the address of the vector since the member variables are laid out contigiously and are the first seen
@@ -279,20 +325,27 @@ int main()
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(VAO[1]);
-    VertexBuffer raysVBO(&ray,sizeof(ray),GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)0);
+    VertexBuffer wallsVBO; //dont know the size yet. .BufferData() later in draw ray function
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);//drawn with gl lines layout: (p1,p2|tx1,tx2)
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,2*sizeof(float),(void*)sizeof(vec4f));
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)sizeof(vec2f));
+    glEnableVertexAttribArray(1);
+
+    glBindVertexArray(VAO[2]);//dont know the size yet. .BufferData() later in draw ray function
+    VertexBuffer floorVBO;//floors are drawn with gl point layout (p1,p2|tx1,tx2) then cieling (p1,p2|tx1,tx2)
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)sizeof(vec2f));
     glEnableVertexAttribArray(1);
     
-    glBindVertexArray(VAO[2]);
+    glBindVertexArray(VAO[3]);
     VertexBuffer mapVBO;
     IndexBuffer mapEBO;
     setMap(mapVBO,mapEBO);
 
     Shader playerShader("../include/res/player.glsl");
     Shader mapShader("../include/res/map.glsl");
-    Shader rayShader("../include/res/rays.glsl");
+    Shader terrainShader("../include/res/terrain.glsl");
 
     Texture2D redBrick("../assets/redbrick.png");//cannot create textures before gl context
 
@@ -314,15 +367,15 @@ int main()
         processInput(window,player,ray);
         
 
-        rayShader.Bind();
+        terrainShader.Bind();
 
         redBrick.Bind(0);
-        rayShader.SetUniform1i("uTexture",0);
+        terrainShader.SetUniform1i("uTexture",0);
 
-        drawRays(player,ray,raysVBO,rayShader,VAO[1]);
+        drawRays(player,wallsVBO,VAO[1],floorVBO,VAO[2],terrainShader);
 
         mapShader.Bind();
-        glBindVertexArray(VAO[2]);
+        glBindVertexArray(VAO[3]);
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
 
         // playerVBO.Bind();
@@ -330,8 +383,8 @@ int main()
         // glBindVertexArray(VAO[0]);
 
         // playerShader.Bind(); 
-        // glPointSize(4.f);
-        //glDrawArrays(GL_POINTS,0,1);
+        // glPointSize(10.f);
+        // glDrawArrays(GL_POINTS,0,1);
         //prvTime=glfwGetTime();
         glfwSwapInterval(2);
         glfwSwapBuffers(window);
@@ -412,7 +465,7 @@ void setMap(VertexBuffer& mapVBO,IndexBuffer& mapEBO)
         indices.push_back(i+2);
     }
     
-    mapVBO.BufferData(mapAttrib.data(),mapAttrib.size()*sizeof(vec3f),GL_STATIC_DRAW);
+    mapVBO.BufferData(mapAttrib.data(),mapAttrib.size()*sizeof(vec3f),GL_STATIC_DRAW); //layout (p1,p2,p3,p4|c1,c2,c3,c4)
     mapEBO.BufferData(indices.data(),indices.size(),GL_STATIC_DRAW);
     glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,sizeof(vec3f),(void*)0);
     glEnableVertexAttribArray(0);

@@ -11,7 +11,7 @@ void main()
     gl_Position=vec4(pos,0,1.f);//do not put a 0 in the w pos or undefined behavior//gl_Position=vec4(aPos,0,1.f);//do not put a 0 in the w pos or undefined behavior
     //vertColor=wallColor;
     texCoord=aTex;
-    //texCoord=vec2(.5,.9);
+    //texCoord=vec2(.5,.3);
 }
 
 #shader fragment

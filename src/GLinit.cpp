@@ -88,7 +88,7 @@ int glInit(GLFWwindow** window)
 
     // Set viewport and register resize callback
     glViewport(0,0,WIDTH,HEIGHT);
-    glClearColor(.5,.5,.5,1);
+    glClearColor(0,0,0,1);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_DEBUG_OUTPUT);
