@@ -293,8 +293,8 @@ void updatePlayer(vec3f& player,vec4f& ray)
 void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
 {
     float speed=5.f;
-    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.03; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
-    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.03; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.035; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
+    if(glfwGetKey(window,GLFW_KEY_D)==GLFW_PRESS){pa+=0.035; if(pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
     if(glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS){px+=pdx*speed; py+=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS){px-=pdx*speed; py-=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
@@ -347,7 +347,9 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader terrainShader("../include/res/terrain.glsl");
 
-    Texture2D redBrick("../assets/redbrick.png");//cannot create textures before gl context
+    Texture2D redBrick("../assets/mossy.png");//cannot create textures before gl context
+
+    
 
     //locks fps to 60
 
