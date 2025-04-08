@@ -62,28 +62,30 @@ float dist(float ax, float ay, float bx, float by)
 }
 
 void drawTerrain(std::vector<vec2f>& walls, VertexBuffer& wallVBO, ui32 wallVAO, 
-                 std::vector<vec2f>& floors, VertexBuffer& floorVBO, ui32 floorVAO, ui8 lineWidth)
+                 std::vector<vec2f>& floors, VertexBuffer& floorVBO, ui32 floorVAO, ui8 lineWidth, Texture2D* textures)
 {
+        textures[0].Bind(0);
         wallVBO.Bind();
         wallVBO.BufferData(walls.data(),walls.size()*sizeof(vec2f),GL_DYNAMIC_DRAW);
         glBindVertexArray(wallVAO);
         glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,walls.size()/2);//draws rays
 
+        textures[1].Bind(0);
         floorVBO.Bind();
         glBindVertexArray(floorVAO);
         floorVBO.BufferData(floors.data(),floors.size()*sizeof(vec2f),GL_DYNAMIC_DRAW);
         glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,floors.size()/2);//draws rays
 }
 void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO, 
-                VertexBuffer& floorVBO, ui32 floorVAO, Shader& terrainShader)
+                VertexBuffer& floorVBO, ui32 floorVAO, Shader& terrainShader, Texture2D* textures)
 {
     ui8 blockSide=8;//exponet for a power of 2, so each block is 64x64 pixels, 2^6
     i16 blockSidePx=pow(2,blockSide);
-    ui16 numRays=240;
+    ui16 numRays=200;
     ui8 depthOfRay=20;
     ui8 lineWidth=10;
-    float rayPerDeg=ONE_DGR/3;
-    float rayOff=1/rayPerDeg*ONE_DGR*30;//(one deg/3*x=one deg*30)//formula for having a 30 deg offset no matter the rayPerDeg
+    float rayPerDeg=ONE_DGR/4;
+    float rayOff=1/rayPerDeg*ONE_DGR*25;//(one deg/3*x=one deg*30)//formula for having a 30 deg offset no matter the rayPerDeg
     // int wallColorLoc=glGetUniformLocation(terrainShader.getID(),"wallColor");
     int fogLoc=glGetUniformLocation(terrainShader.getID(),"uFog");
 
@@ -252,7 +254,7 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
     // walls.push_back(ray);
     // walls.push_back(texCoord);
 
-    drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth);
+    drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth,textures);
 }
 void updatePlayer(vec3f& player,vec4f& ray)
 {
@@ -261,33 +263,6 @@ void updatePlayer(vec3f& player,vec4f& ray)
 }
 // void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 // {
-//     if(action==GLFW_PRESS)
-//     {
-//         switch(key)
-//         {
-//             case GLFW_KEY_D:
-//             {
-
-//             }break;
-//             case GLFW_KEY_A:
-//             {
-
-//             }break;
-//             case GLFW_KEY_W:
-//             {
-
-//             }break;
-//             case GLFW_KEY_S:
-//             {
-
-//             }break;
-//             case GLFW_KEY_ESCAPE:
-//             {
-
-//             }break;
-//         }    
-//     }
-
 // }
 //TODO: PLAYER MOVEMENT IS RENDERED IN IMMEDIATE MODE (REBUFFERS PLAYER DATA EVERY FRAME). MAYBE CHANGE TO TRANSLATION MATRIX LATER
 void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
@@ -347,9 +322,9 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader terrainShader("../include/res/terrain.glsl");
 
-    Texture2D redBrick("../assets/mossy.png");//cannot create textures before gl context
-
-    
+    Texture2D redBrick("../assets/wood.png");//cannot create textures before gl context
+    Texture2D mossyBrick("../assets/greystone.png");//cannot create textures before gl context
+    Texture2D textures[2]={mossyBrick, redBrick};
 
     //locks fps to 60
 
@@ -371,10 +346,10 @@ int main()
 
         terrainShader.Bind();
 
-        redBrick.Bind(0);
+        //redBrick.Bind(0);
         terrainShader.SetUniform1i("uTexture",0);
 
-        drawRays(player,wallsVBO,VAO[1],floorVBO,VAO[2],terrainShader);
+        drawRays(player,wallsVBO,VAO[1],floorVBO,VAO[2],terrainShader,textures);
 
         mapShader.Bind();
         glBindVertexArray(VAO[3]);
