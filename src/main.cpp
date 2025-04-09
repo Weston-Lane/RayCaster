@@ -95,11 +95,12 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
     std::vector<vec2f> floors;
     walls.reserve(2*WIDTH);
     floors.reserve(2*WIDTH);
+    ui8 texSlot=0;
 
-    int r,mx,my,mp,dof=0; 
+    i32 r,mx,my,mp,dof=0; 
     double rx,ry,ra,xo,yo,distWall=0;
     ra=pa-rayPerDeg*rayOff;
-
+    
  
 
     if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
@@ -301,17 +302,21 @@ int main()
 
     glBindVertexArray(VAO[1]);
     VertexBuffer wallsVBO; //dont know the size yet. .BufferData() later in draw ray function
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);//drawn with gl lines layout: (p1,p2|tx1,tx2)
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);//drawn with gl lines layout: (p1,p2|tx1,tx2|texSlot)
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)sizeof(vec2f));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,sizeof(float),(void*)(2*sizeof(vec2f)));
+    glEnableVertexAttribArray(2);
 
     glBindVertexArray(VAO[2]);//dont know the size yet. .BufferData() later in draw ray function
-    VertexBuffer floorVBO;//floors are drawn with gl point layout (p1,p2|tx1,tx2) then cieling (p1,p2|tx1,tx2)
+    VertexBuffer floorVBO;//floors are drawn with gl point layout (p1,p2|tx1,tx2) then cieling (p1,p2|tx1,tx2|texSlot)
     glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)sizeof(vec2f));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,sizeof(float),(void*)(2*sizeof(vec2f)));
+    glEnableVertexAttribArray(2);
     
     glBindVertexArray(VAO[3]);
     VertexBuffer mapVBO;
@@ -322,9 +327,9 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader terrainShader("../include/res/terrain.glsl");
 
-    Texture2D redBrick("../assets/wood.png");//cannot create textures before gl context
-    Texture2D mossyBrick("../assets/greystone.png");//cannot create textures before gl context
-    Texture2D textures[2]={mossyBrick, redBrick};
+    Texture2D wood("../assets/wood.png");//cannot create textures before gl context
+    Texture2D greyStone("../assets/greystone.png");//cannot create textures before gl context
+    Texture2D textures[2]={greyStone, wood};
 
     //locks fps to 60
 
@@ -346,7 +351,6 @@ int main()
 
         terrainShader.Bind();
 
-        //redBrick.Bind(0);
         terrainShader.SetUniform1i("uTexture",0);
 
         drawRays(player,wallsVBO,VAO[1],floorVBO,VAO[2],terrainShader,textures);
