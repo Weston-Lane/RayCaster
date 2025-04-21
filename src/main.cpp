@@ -284,7 +284,7 @@ int main()
     Texture2D greyStone("../assets/greystone.png");//cannot create textures before gl context
     Texture2D textures[2]={greyStone, wood};
 
-    LOG_DEBUG(*mossyBrick.data());
+    
     //locks fps to 60
 
     double prvTime=glfwGetTime();
