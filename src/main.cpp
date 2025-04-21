@@ -17,7 +17,7 @@
 float px=340,py=200,pa=20.5,pdx=0,pdy=0;
 int mapX=16, mapY=16;
 constexpr int mapS=256;
-const double FPS=80.0;
+const double FPS=60.0;
 const double FRAME_TIME=1.0/FPS;
 
 std::array<ui8,mapS> mapN ={
@@ -60,7 +60,7 @@ float dist(float ax, float ay, float bx, float by)
 {
     return sqrt((ax-bx)*(ax-bx)+(ay-by)*(ay-by));
 }
-
+//TODO:implement 2D TextureArray. This allows the TexArray to be passed in as a Sampler 2D uniform which hold multiple textures and the layer (which texture) can be selected via a vertex attribute
 void drawTerrain(std::vector<vec2f>& walls, VertexBuffer& wallVBO, ui32 wallVAO, 
                  std::vector<vec2f>& floors, VertexBuffer& floorVBO, ui32 floorVAO, ui8 lineWidth, Texture2D* textures)
 {
@@ -176,73 +176,37 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
                 //wall top (x,y)                         //wall bottom (x,y)
         ray.x=r*lineWidth; ray.y=offset; ray.z=r*lineWidth; ray.w=wallH+offset;
         clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
-
-        //if(ray.x>=0&&ray.y>=1){LOG_DEBUG("wall out of range ",ray.x," ",ray.y);}
-
-        // walls.emplace_back(ray.x,ray.y); walls.emplace_back(ray.x,ray.y);
-        // walls.emplace_back(ray.z,ray.w); walls.emplace_back(ray.z,ray.w);
         walls.emplace_back(ray.x,ray.y); walls.emplace_back(texCoord.x,texCoord.y);
         walls.emplace_back(ray.z,ray.w); walls.emplace_back(texCoord.z,texCoord.w);
-        
-        // walls.push_back(ray);
-        // walls.push_back(texCoord);
-
-        // rayVBO.Bind();
-        // vec4f buffer[2]={ray,texCoord};
-        // rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
-        // glBindVertexArray(VAO);
-        // glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,2);//draws rays
 
         //draw floors
         for(int y=offset+wallH;y<HEIGHT;y++)
         {
             float ta=pa-ra;
-            //if(ta<0){ta+=2*PI;} if(ta>2*PI){ta-=2*PI;}
             float dy=y-(HEIGHT/2), deg=-ra, fishFix=cos(ta);
             float tx=px/4.4 + cos(deg)*474*64/(dy*fishFix);
             float ty=py/4.4 - sin(deg)*474*64/(dy*fishFix);
+
             ray.x=r*lineWidth; ray.y=y;
-            //ray.z=r*lineWidth; ray.w=y;
             clipSpace(ray.x,ray.y);
             texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64;
-            //texCoord.z=(float)((int)tx%64)/64; texCoord.w=(float)((int)ty%64)/64;
-            //int mp=mapN[(int)(ty/16.0)*mapX+(int)(tx/16.0)];
             
             floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y);
-
-            // buffer[0]=ray;
-            // buffer[1]=texCoord;
-            // rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
-            // //float c=All_Textures[((int)(ty)&31)*32 + ((int)(tx)&31)+mp]*0.7;
-            // glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,1);//draws rays
-            //glColor3f(c/1.3,c/1.3,c);glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y);glEnd();
-        
-            
+                   
         }
         //draw cielings
         for(int y=0;y<offset;y++)
         {
             float ta=pa-ra;
-            //if(ta<0){ta+=2*PI;} if(ta>2*PI){ta-=2*PI;}
             float dy=(HEIGHT/2)-y, deg=-ra, raFix=cos(ta);
             float tx=px/4.4 + cos(deg)*474*64/dy/raFix;
             float ty=py/4.4 - sin(deg)*474*64/dy/raFix;
-            //int mp=mapN[(int)(ty/32.0)*mapX+(int)(tx/32.0)]*32*32;
+
             ray.x=r*lineWidth; ray.y=y;
-            //ray.z=r*lineWidth; ray.w=y;
             clipSpace(ray.x,ray.y);
             texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64; 
-            //texCoord.z=(float)((int)tx%64)/64; texCoord.w=(float)((int)ty%64)/64;
 
             floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y);
-
-            //LOG_DEBUG(ray.x," ",ray.y);
-            // buffer[0]=ray;
-            // buffer[1]=texCoord;
-            // rayVBO.BufferData(&buffer,sizeof(buffer),GL_DYNAMIC_DRAW);
-            // //float c=All_Textures[((int)(ty)&31)*32 + ((int)(tx)&31)+mp]*0.7;
-            // glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,1);//draws rays
-            //glColor3f(c/1.3,c/1.3,c);glPointSize(8);glBegin(GL_POINTS);glVertex2i(r*8+530,y);glEnd();
         }
         
 
@@ -250,23 +214,13 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
 
     }
 
-    // ray.x=0; ray.y=0; ray.z=0; ray.w=1;
-    // texCoord.x=0; texCoord.y=0; texCoord.z=.5; texCoord.w=1;
-    // walls.push_back(ray);
-    // walls.push_back(texCoord);
-
     drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth,textures);
-}
-void updatePlayer(vec3f& player,vec4f& ray)
-{
-    player.x=px; player.y=py;
-    player.clipSpace();   
 }
 // void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 // {
 // }
 //TODO: PLAYER MOVEMENT IS RENDERED IN IMMEDIATE MODE (REBUFFERS PLAYER DATA EVERY FRAME). MAYBE CHANGE TO TRANSLATION MATRIX LATER
-void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
+void processInput(GLFWwindow* window)
 {
     float speed=5.f;
     if(glfwGetKey(window,GLFW_KEY_A)==GLFW_PRESS){pa-=0.035; if(pa<0) {pa+=2*PI;} pdx=cos(pa)*2; pdy=sin(pa)*2;}
@@ -274,7 +228,6 @@ void processInput(GLFWwindow* window, vec3f& player, vec4f& ray)
     if(glfwGetKey(window,GLFW_KEY_W)==GLFW_PRESS){px+=pdx*speed; py+=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS){px-=pdx*speed; py-=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
-    updatePlayer(player,ray);
 }
 void setFrameRate(double fps)
 {
@@ -331,6 +284,7 @@ int main()
     Texture2D greyStone("../assets/greystone.png");//cannot create textures before gl context
     Texture2D textures[2]={greyStone, wood};
 
+    LOG_DEBUG(*mossyBrick.data());
     //locks fps to 60
 
     double prvTime=glfwGetTime();
@@ -346,7 +300,7 @@ int main()
         //*locks fps to set fps/////////////////
 
         
-        processInput(window,player,ray);
+        processInput(window);
         
 
         terrainShader.Bind();
