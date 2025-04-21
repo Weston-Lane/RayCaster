@@ -19,6 +19,7 @@ public:
     inline int GetHeight() const {return m_height;}
     inline std::string GetFilePath() const {return m_filePath;}
     inline int GetRenderID() const{return m_rendererID;}
+    inline unsigned char* data() const {return m_localBuffer;}
 
 
 };
