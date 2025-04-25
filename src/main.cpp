@@ -20,31 +20,30 @@ constexpr int mapS=256;
 const double FPS=60.0;
 const double FRAME_TIME=1.0/FPS;
 
-std::array<ui8,mapS> mapN ={
-    // 1,1,1,1,1,1,1,1, 
-    // 1,0,1,0,0,1,0,1, 
-    // 1,0,1,0,0,0,0,1, 
-    // 1,0,0,0,0,0,0,1, 
-    // 1,0,0,1,2,1,0,1, 
-    // 1,0,0,1,0,0,0,1, 
-    // 1,0,0,1,0,0,0,1, 
-    // 1,1,1,1,1,1,1,1, 
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1,
-    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 
-    1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 
-    1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 
-    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+std::array<i8,mapS> mapN ={
+    // greyStone,//0
+    // wood,//1
+    // redBrick,//2
+    // eagle//3
+    // mossy//4
+    
+
+    0, 3, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2,
+    3, -1, 3, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 1, 0, 1,
+    3, -1, 3, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2,
+    2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    2, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    2, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    2, 2, 2, 0, 0, 4, 4, 4, 4, 4, 4, 0, 0, 2, 2, 2, 
+    1, 1, 1, 0, 0, 4, 4, 4, 4, 4, 4, 0, 0, 2, 2, 2, 
+    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 
+    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
+    2, 1, 1, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
     // 0,1,1,1,1,1,1,0,
     // 0,0,0,0,0,0,0,0,
     // 0,0,0,0,0,0,0,0,
@@ -54,6 +53,60 @@ std::array<ui8,mapS> mapN ={
     // 0,0,0,0,0,0,0,0,
     // 0,1,1,1,1,1,1,0
 };
+
+std::array<i8,mapS> mapFloor ={
+    // greyStone,//0
+    // wood,//1
+    // redBrick,//2
+    // eagle//3
+    // mossy//4
+    
+
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+};
+std::array<i8,mapS> mapCeiling ={
+    // greyStone,//0
+    // wood,//1
+    // redBrick,//2
+    // eagle//3
+    // mossy//4
+    
+
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
+};
+
 void setMap(VertexBuffer&, IndexBuffer&);
 
 float dist(float ax, float ay, float bx, float by)
@@ -62,22 +115,22 @@ float dist(float ax, float ay, float bx, float by)
 }
 //TODO:implement 2D TextureArray. This allows the TexArray to be passed in as a Sampler 2D uniform which hold multiple textures and the layer (which texture) can be selected via a vertex attribute
 void drawTerrain(std::vector<vec2f>& walls, VertexBuffer& wallVBO, ui32 wallVAO, 
-                 std::vector<vec2f>& floors, VertexBuffer& floorVBO, ui32 floorVAO, ui8 lineWidth, Texture2D* textures)
+                 std::vector<vec2f>& floors, VertexBuffer& floorVBO, ui32 floorVAO, ui8 lineWidth, Texture2D* textures, TextureArray2D& texArray)
 {
         textures[0].Bind(0);
         wallVBO.Bind();
         wallVBO.BufferData(walls.data(),walls.size()*sizeof(vec2f),GL_DYNAMIC_DRAW);
         glBindVertexArray(wallVAO);
-        glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,walls.size()/2);//draws rays
+        glLineWidth(lineWidth); glDrawArrays(GL_LINES,0,walls.size()/3);//draws rays
 
         textures[1].Bind(0);
         floorVBO.Bind();
         glBindVertexArray(floorVAO);
         floorVBO.BufferData(floors.data(),floors.size()*sizeof(vec2f),GL_DYNAMIC_DRAW);
-        glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,floors.size()/2);//draws rays
+        glPointSize(lineWidth); glDrawArrays(GL_POINTS,0,floors.size()/3);//draws rays
 }
 void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO, 
-                VertexBuffer& floorVBO, ui32 floorVAO, Shader& terrainShader, Texture2D* textures)
+                VertexBuffer& floorVBO, ui32 floorVAO, Shader& terrainShader, Texture2D* textures, TextureArray2D& texArray)
 {
     ui8 blockSide=8;//exponet for a power of 2, so each block is 64x64 pixels, 2^6
     i16 blockSidePx=pow(2,blockSide);
@@ -97,7 +150,8 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
     floors.reserve(2*WIDTH);
     ui8 texSlot=0;
 
-    i32 r,mx,my,mp,dof=0; 
+    //mp,mv,mh are used to determine the number in the map array to let the shader know what texture to sample from
+    i32 r,mx,my,mp,mv,mh,dof,tileInd=0; 
     double rx,ry,ra,xo,yo,distWall=0;
     ra=pa-rayPerDeg*rayOff;
     
@@ -120,7 +174,7 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
         {
             mx=((int)rx>>blockSide); my=(int)(ry)>>blockSide; mp=my*mapX+mx;
             
-            if(mp>=0 && mp<mapX*mapY && mapN[mp]>=1){distH=dist(px,py,rx,ry); break;}
+            if(mp>=0 && mp<mapX*mapY && mapN[mp]>=1){distH=dist(px,py,rx,ry); mh=mapN[mp]; break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
         hx=rx; hy=ry; 
@@ -136,13 +190,13 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
         {
             mx=(int)(rx)>>blockSide; my=(int)(ry)>>blockSide; mp=my*mapX+mx;
             
-            if(mp>=0 && mp<mapX*mapY && mapN[mp]>=1){distV=dist(px,py,rx,ry); break;}
+            if(mp>=0 && mp<mapX*mapY && mapN[mp]>=1){distV=dist(px,py,rx,ry); mv=mapN[mp]; break;}
             else {rx+=xo; ry+=yo; dof++;}
         }
         vx=rx; vy=ry;
 
-        if(distV<distH){rx=vx; ry=vy; distWall=distV; vert_hor=0;}
-        else {rx=hx;ry=hy; distWall=distH;vert_hor=1;}
+        if(distV<distH){rx=vx; ry=vy; distWall=distV; vert_hor=0; tileInd=mv;}
+        else {rx=hx;ry=hy; distWall=distH;vert_hor=1; tileInd=mh;}
         
         //*drawing rays from player
 
@@ -156,7 +210,7 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
         // glDrawArrays(GL_LINES,0,2);//draws rays
 
         //distance increases fog
-        float fogScale=1;//-distWall/(float)(WIDTH*2);
+        float fogScale=1-distWall/(float)(WIDTH);
 
         glUniform1f(fogLoc,fogScale);
         //(vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f*fogScale) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f*fogScale);
@@ -173,48 +227,56 @@ void drawRays(vec3f& player, VertexBuffer& wallVBO, ui32 wallVAO,
         float offset=HEIGHT/2-wallH/2;
         if(wallH>HEIGHT*mapS){wallH=HEIGHT*mapS;}
 
-                //wall top (x,y)                         //wall bottom (x,y)
+               //wall top (x,y)                         //wall bottom (x,y)
         ray.x=r*lineWidth; ray.y=offset; ray.z=r*lineWidth; ray.w=wallH+offset;
         clipSpace(ray.x,ray.y); clipSpace(ray.z,ray.w);
-        walls.emplace_back(ray.x,ray.y); walls.emplace_back(texCoord.x,texCoord.y);
-        walls.emplace_back(ray.z,ray.w); walls.emplace_back(texCoord.z,texCoord.w);
-
-        //draw floors
-        for(int y=offset+wallH;y<HEIGHT;y++)
+        walls.emplace_back(ray.x,ray.y); walls.emplace_back(texCoord.x,texCoord.y); walls.emplace_back(tileInd,fogScale); //walls.emplace_back(distWall,WIDTH);
+        walls.emplace_back(ray.z,ray.w); walls.emplace_back(texCoord.z,texCoord.w); walls.emplace_back(tileInd,fogScale); //walls.emplace_back(distWall,WIDTH);
+        
+        //checks for dist to see if cielings and floors should be generated
+        if(wallH>50)
         {
-            float ta=pa-ra;
-            float dy=y-(HEIGHT/2), deg=-ra, fishFix=cos(ta);
-            float tx=px/4.4 + cos(deg)*474*64/(dy*fishFix);
-            float ty=py/4.4 - sin(deg)*474*64/(dy*fishFix);
+            //draw floors
+            for(int y=offset+wallH;y<HEIGHT;y++)
+            {
+                float ta=pa-ra;
+                float dy=y-(HEIGHT/2), deg=-ra, fishFix=cos(ta);
+                float tx=px/4.4 + cos(deg)*474*64/(dy*fishFix);
+                float ty=py/4.4 - sin(deg)*474*64/(dy*fishFix);
+                ray.x=r*lineWidth; ray.y=y;
+                mx=(int)tx/(blockSidePx/4-6); my=(int)ty/(blockSidePx/4-6); tileInd=mapFloor[my*mapX+mx];//TODO: im  not sure why but dividing by the bock face size of 64 is too much and need to be offset by 6pixels
+                clipSpace(ray.x,ray.y);
 
-            ray.x=r*lineWidth; ray.y=y;
-            clipSpace(ray.x,ray.y);
-            texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64;
-            
-            floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y);
-                   
+                texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64;//texture size is 64x64
+                fogScale=dy/(HEIGHT*7);
+                floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y); floors.emplace_back(tileInd,fogScale); //floors.emplace_back(distWall,WIDTH);
+                        
+            }
+            //draw cielings
+            for(int y=0;y<offset;y++)
+            {
+                float ta=pa-ra;
+                float dy=(HEIGHT/2)-y, deg=-ra, raFix=cos(ta);
+                float tx=px/4.4 + cos(deg)*474*64/dy/raFix;
+                float ty=py/4.4 - sin(deg)*474*64/dy/raFix;
+
+                ray.x=r*lineWidth; ray.y=y;
+                mx=(int)tx/(blockSidePx/4-6); my=(int)ty/(blockSidePx/4-6); tileInd=mapCeiling[my*mapX+mx];
+                clipSpace(ray.x,ray.y);
+                
+                texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64; 
+                fogScale=dy/(HEIGHT*7);
+                floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y); floors.emplace_back(tileInd,fogScale); //floors.emplace_back(distWall,WIDTH);
+            }
         }
-        //draw cielings
-        for(int y=0;y<offset;y++)
-        {
-            float ta=pa-ra;
-            float dy=(HEIGHT/2)-y, deg=-ra, raFix=cos(ta);
-            float tx=px/4.4 + cos(deg)*474*64/dy/raFix;
-            float ty=py/4.4 - sin(deg)*474*64/dy/raFix;
 
-            ray.x=r*lineWidth; ray.y=y;
-            clipSpace(ray.x,ray.y);
-            texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64; 
-
-            floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y);
-        }
         
 
         ra+=rayPerDeg; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
 
     }
 
-    drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth,textures);
+    drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth,textures,texArray);
 }
 // void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 // {
@@ -255,21 +317,25 @@ int main()
 
     glBindVertexArray(VAO[1]);
     VertexBuffer wallsVBO; //dont know the size yet. .BufferData() later in draw ray function
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);//drawn with gl lines layout: (p1,p2|tx1,tx2|texSlot)
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*3,(void*)0);//drawn with gl lines layout: (p1,p2|tx1,tx2|texSlotx,textSloty) //texSloty is not used, it is just there so it can be a vec2f for the buffer
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)sizeof(vec2f));
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*3,(void*)sizeof(vec2f));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,sizeof(float),(void*)(2*sizeof(vec2f)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*3,(void*)(2*sizeof(vec2f)));
     glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*4,(void*)(3*sizeof(vec2f)));
+    // glEnableVertexAttribArray(3);
 
     glBindVertexArray(VAO[2]);//dont know the size yet. .BufferData() later in draw ray function
-    VertexBuffer floorVBO;//floors are drawn with gl point layout (p1,p2|tx1,tx2) then cieling (p1,p2|tx1,tx2|texSlot)
-    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)0);
+    VertexBuffer floorVBO;//floors are drawn with gl point layout (p1,p2|tx1,tx2) then cieling (p1,p2|tx1,tx2|texSlotx texSloty) 
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*3,(void*)0);//drawn with gl lines layout: (p1,p2|tx1,tx2|texSlotx,textSloty) //texSloty is not used, it is just there so it can be a vec2f for the buffer
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*2,(void*)sizeof(vec2f));
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*3,(void*)sizeof(vec2f));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,sizeof(float),(void*)(2*sizeof(vec2f)));
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*3,(void*)(2*sizeof(vec2f)));
     glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(3,2,GL_FLOAT,GL_FALSE,sizeof(vec2f)*4,(void*)(3*sizeof(vec2f)));
+    // glEnableVertexAttribArray(3);
     
     glBindVertexArray(VAO[3]);
     VertexBuffer mapVBO;
@@ -280,9 +346,26 @@ int main()
     Shader mapShader("../include/res/map.glsl");
     Shader terrainShader("../include/res/terrain.glsl");
 
+    const int numTex=5;
     Texture2D wood("../assets/wood.png");//cannot create textures before gl context
     Texture2D greyStone("../assets/greystone.png");//cannot create textures before gl context
-    Texture2D textures[2]={greyStone, wood};
+    Texture2D redBrick("../assets/redBrick.png");
+    Texture2D eagle("../assets/eagle.png");
+    Texture2D mossy("../assets/mossy.png");
+    //!THE ORDER OF THE TEXURES IN THIS ARRAY IS THE CORRESPONDING MAP NUMBER IN THE MAP ARRAY.
+    Texture2D textures[numTex]={
+        greyStone,//0
+        wood,//1
+        redBrick,//2
+        eagle,//3
+        mossy //4
+    };
+
+    TextureArray2D texArray(textures, wood.GetWidth(), wood.GetHeight(), numTex);
+    
+    
+
+
 
     
     //locks fps to 60
@@ -304,10 +387,10 @@ int main()
         
 
         terrainShader.Bind();
-
+        texArray.Bind(1,terrainShader.getID(),"uTexArray");
         terrainShader.SetUniform1i("uTexture",0);
 
-        drawRays(player,wallsVBO,VAO[1],floorVBO,VAO[2],terrainShader,textures);
+        drawRays(player,wallsVBO,VAO[1],floorVBO,VAO[2],terrainShader,textures, texArray);
 
         mapShader.Bind();
         glBindVertexArray(VAO[3]);

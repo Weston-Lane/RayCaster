@@ -2,6 +2,8 @@
 #include <windows.h>
 #include <string>
 #include <iostream>
+
+
 //*set the level of logging via this file
 #define LOG_WARN_ENABLED 1
 #define LOG_INFO_ENABLED 1
