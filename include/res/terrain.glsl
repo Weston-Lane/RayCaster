@@ -38,6 +38,6 @@ void main()
     //vec4 texColor=texture(uTexture,texCoord);
     int slot=int(texSlot.x);
     vec4 texColor=texture(uTexArray,vec3(texCoord,slot));
-    texColor.w=1;//fog;
+    texColor.w=fog;
     fragColor=texColor;
 }

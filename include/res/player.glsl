@@ -1,13 +1,10 @@
 #shader vertex
 #version 460 core
 layout (location=0) in vec3 aPos;
-//uniform vec3 translate;
 out vec4 vertColor;
 void main()
 {
-    vec3 new=aPos;//+translate;
-    // new.x+=new.x*.45;
-    // new.y+=new.y*.25;
+    vec3 new=aPos;
     gl_Position=vec4(new.x,new.y,new.z,1);
     vertColor=vec4(1,.5,0,1);
 }
