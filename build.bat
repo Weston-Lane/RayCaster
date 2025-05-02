@@ -10,7 +10,7 @@ rem temporarily moves into this directory to compile the exe
 pushd "build"
 rem /Zi creates the pdb file for debuging in VS, use command devenv [desired app.exe]; user.lib is the windows UI library
 
-cl /std:c++20 /EHcs /Zi /Fe:Finger_Gun /I%INCLUDE_PATH% %SRC_PATH% %ASSEM_MODULES% /link /LIBPATH:%LIBRARY_PATH% %LIBRARIES% 2>&1 > error.log
+cl /std:c++20 /EHcs /Zi /openmp /Fe:Finger_Gun /I%INCLUDE_PATH% %SRC_PATH% %ASSEM_MODULES% /link /LIBPATH:%LIBRARY_PATH% %LIBRARIES% 2>&1 > error.log
 IF "%1"=="-c" (
     IF ERRORLEVEL 1 (
         rem black text,red highlight,underline

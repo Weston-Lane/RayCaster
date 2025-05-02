@@ -25,6 +25,7 @@ public:
     vec2& operator*(T const scalar){x*=scalar; y*=scalar; return *this;}//scalar ops
     friend vec2& operator*(T const scalar, vec2&v){v.x*=scalar; v.y*=scalar; return v;}
     T len(){return std::sqrt(x*x+y*y);}
+    void normalize(){ T len=std::sqrt(x*x+y*y); x/=len; y/=len;}
 
     vec2& operator=(const vec2& C)
     {
@@ -52,7 +53,7 @@ public:
     vec3& operator*(T const scalar){x*=scalar; y*=scalar; z*=scalar; return *this;}//scalar ops
     friend vec3& operator*(T const scalar, vec3&v){v.x*=scalar; v.y*=scalar; v.z*=scalar; return v;}
     T len(){return std::sqrt(x*x+y*y+z*z);}
-
+    void normalize(){ T len=std::sqrt(x*x+y*y); x/=len; y/=len; z/=len;}
     vec3& operator=(const vec3& C)
     {
         // Check for self-assignment
@@ -87,7 +88,7 @@ public:
     vec4& operator*(T const scalar){x*=scalar; y*=scalar; z*=scalar; w*=scalar; return *this;}//scalar ops
     friend vec4& operator*(T const scalar, vec4&v){v.x*=scalar; v.y*=scalar; v.z*=scalar; v.w*=scalar; return v;}
     T len(){return std::sqrt(x*x+y*y+z*z+w*w);}
-
+    void normalize(){ T len=std::sqrt(x*x+y*y); x/=len; y/=len; z/=len; w/=len;}
     vec4& operator=(const vec4& C)
     {
         // Check for self-assignment

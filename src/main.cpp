@@ -14,7 +14,7 @@
 #include "texture.h"
 #include "vertexArray.h"
 
-float px=340,py=200,pa=20.5,pdx=0,pdy=0;
+float px=340,py=200,pa=1.2,pdx=0,pdy=0;
 int mapX=16, mapY=16;
 constexpr int mapS=256;
 const double FPS=60.0;
@@ -220,7 +220,8 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
         if(wallH>20)
         {
             //draw floors
-            for(int y=offset+wallH;y<HEIGHT;y++)
+            int startY=offset+wallH;
+            for(int y=startY;y<HEIGHT;y++)
             {
                 float ta=pa-ra;
                 float dy=y-(HEIGHT/2), deg=-ra, fishFix=cos(ta);
@@ -231,7 +232,7 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
                 clipSpace(ray.x,ray.y);
 
                 texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64;//texture size is 64x64
-                fogScale=dy/(HEIGHT*7);
+                fogScale=dy/(HEIGHT*7);//fog set floor
                 floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y); floors.emplace_back(tileInd,fogScale); //floors.emplace_back(distWall,WIDTH);
                         
             }
@@ -248,7 +249,7 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
                 clipSpace(ray.x,ray.y);
                 
                 texCoord.x=(float)((int)tx%64)/64; texCoord.y=(float)((int)ty%64)/64; 
-                fogScale=dy/(HEIGHT*7);
+                fogScale=dy/(HEIGHT*7);//fog set cieling
                 floors.emplace_back(ray.x,ray.y); floors.emplace_back(texCoord.x,texCoord.y); floors.emplace_back(tileInd,fogScale); //floors.emplace_back(distWall,WIDTH);
             }
         }
@@ -331,6 +332,7 @@ int main()
     Texture2D redBrick("../assets/redBrick.png");
     Texture2D eagle("../assets/eagle.png");
     Texture2D mossy("../assets/mossy.png");
+    
     //!THE ORDER OF THE TEXURES IN THIS ARRAY IS THE CORRESPONDING MAP NUMBER IN THE MAP ARRAY.
     Texture2D textures[numTex]={
         greyStone,//0
@@ -342,7 +344,7 @@ int main()
 
     TextureArray2D texArray(textures, wood.GetWidth(), wood.GetHeight(), numTex);
     
-    Sprite sprite; sprite.pos.x=340; sprite.pos.y=200;sprite.pos.z=0;
+    Sprite sprite; sprite.pos.x=1.5*256; sprite.pos.y=4*256;sprite.pos.z=100;
 
 
 
@@ -361,6 +363,7 @@ int main()
         prvTime+=FRAME_TIME;
         //*locks fps to set fps/////////////////
 
+
         
         processInput(window);
         
@@ -375,22 +378,35 @@ int main()
         glBindVertexArray(VAO[3]);
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
 
-        vec3f spriteRender;
-        spriteRender.x=sprite.pos.x-px; spriteRender.y=sprite.pos.y-py; spriteRender.z=sprite.pos.z;
-        float cs=cos(pa), sn=sin(pa);
-        float a=spriteRender.y*cs+spriteRender.x*sn;
-        float b=spriteRender.x*cs-spriteRender.y*sn;
-        spriteRender.x=a; spriteRender.y=b;
-        spriteRender.x=(spriteRender.x*108/spriteRender.y)+(120/2);
-        spriteRender.y=(spriteRender.z*108/spriteRender.y)+(80/2);
-        spriteRender.clipSpace();
+        vec3f spriteRender(sprite.pos.x-px, sprite.pos.y-py, sprite.pos.z);
+        vec2f pToP(sprite.pos.x-px, pToP.y=sprite.pos.y-py);
+        pToP.normalize();
+        vec2f dir(cos(pa),sin(pa)), pPos(px,py);
+        dir.normalize();
+        float inView=std::acos(dir*pToP);
+        LOG_DEBUG(inView*180/PI);
+        //pa is negative and the constants must be relativley high due to the screen resolution
+        //perspective projection matrix
+        if(inView*180/PI<=30)
+        {
+            float cs=cos(-pa), sn=sin(-pa);
+            float x=spriteRender.y*cs+spriteRender.x*sn;
+            float y=spriteRender.x*cs-spriteRender.y*sn;
+            spriteRender.x=x; spriteRender.y=y;
+            spriteRender.x=(spriteRender.x*WIDTH/spriteRender.y)+(WIDTH/2);
+            spriteRender.y=(spriteRender.z*HEIGHT/spriteRender.y)+(HEIGHT/2);
+            spriteRender.clipSpace();
+
+            
+            playerVBO.Bind();
+            playerVBO.BufferData(&spriteRender,sizeof(spriteRender),GL_DYNAMIC_DRAW);//this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
+            glBindVertexArray(VAO[0]);
+            playerShader.Bind(); 
+            glPointSize(10.f);
+            glDrawArrays(GL_POINTS,0,1);
+        }
         
-        playerVBO.Bind();
-        playerVBO.BufferData(&spriteRender,sizeof(spriteRender),GL_DYNAMIC_DRAW);//this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
-        glBindVertexArray(VAO[0]);
-        playerShader.Bind(); 
-        glPointSize(10.f);
-        glDrawArrays(GL_POINTS,0,1);
+
         //prvTime=glfwGetTime();
 
         glfwSwapInterval(2);

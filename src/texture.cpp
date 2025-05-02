@@ -34,6 +34,13 @@ Texture2D::Texture2D(const std::string& path)
     //if(m_localBuffer){stbi_image_free(m_localBuffer);}
     
 }
+Texture2D::Texture2D()
+    :m_rendererID(0), m_filePath(""), m_localBuffer(0), m_width(0), m_height(0), m_BPP(0)
+{
+    glGenTextures(1,&m_rendererID);
+    glBindTexture(GL_TEXTURE_2D, m_rendererID);
+    glBindTexture(GL_TEXTURE_2D,0);
+}
 Texture2D::~Texture2D()
 {
     glDeleteTextures(1,&m_rendererID);

@@ -11,6 +11,7 @@ private:
     int m_width, m_height, m_BPP;//bits per pixel
 public:
     Texture2D(const std::string& path);
+    Texture2D();
     ~Texture2D();
 
     void Bind(unsigned int slot) const;
