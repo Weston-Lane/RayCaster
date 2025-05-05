@@ -3,7 +3,7 @@
 
 ## Highlights
 - OpenGL rendering pipeline abstraction
-     - VBO, EBO, shaders, and VAO abstractions for ease of use
+- Rendered sprites
 - C++, GLSL
   
 ## ℹ️ Overview
