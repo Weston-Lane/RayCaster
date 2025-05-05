@@ -21,6 +21,7 @@ class Shader
 
         //set uniform
         void SetUniform1i(const std::string& name, int data);
+        void SetUniform1f(const std::string& name, float data);
         void SetUniform2f(const std::string& name, vec2f& data);
         void SetUniform3f(const std::string& name, vec3f& data);
         void SetUniform4f(const std::string& name, vec4f& data);

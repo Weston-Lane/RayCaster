@@ -19,12 +19,19 @@ int mapX=16, mapY=16;
 constexpr int mapS=256;
 const double FPS=60.0;
 const double FRAME_TIME=1.0/FPS;
+vec2i winPos(1,14);
+
+ui16 numRays=200;
+ui8 depthOfRay=20;
+ui8 lineWidth=10;
 
 struct Sprite
 {
+    float speed;
+    ui16 size;
     vec3f pos;
 };
-
+std::vector<int> depth(200,0);
 std::array<i8,mapS> mapWalls ={
     // greyStone,//0
     // wood,//1
@@ -33,22 +40,22 @@ std::array<i8,mapS> mapWalls ={
     // mossy//4
     
 
-    0, 3, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2,
-    3, -1, 3, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 1, 0, 1,
-    3, -1, 3, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2,
-    2, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    2, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    2, 0, 0, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    2, 2, 2, 0, 0, 4, 4, 4, 4, 4, 4, 0, 0, 2, 2, 2, 
-    1, 1, 1, 0, 0, 4, 4, 4, 4, 4, 4, 0, 0, 2, 2, 2, 
-    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 
-    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 
-    2, 1, 1, 0, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
+    2, 3, 2, 5, 4, 5, 5, 5, 5, 4, 5, 1, 1, 2, 1, 2,
+    2, 0, 2, 4, 0, 0, 0, 0, 0, 0, 5, 0, 5, 1, 0, 1,
+    2, 0, 2, 5, 0, 0, 0, 0, 0, 0, 5, 0, 5, 1, 0, 1,
+    3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 1, 0, 1, 
+    2, 0, 2, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+    2, 0, 2, 4, 0, 0, 0, 0, 0, 0, 5, 0, 5, 1, 0, 1, 
+    2, 0, 2, 5, 0, 0, 0, 0, 0, 0, 5, 0, 5, 1, 0, 1, 
+    2, 3, 2, 5, 0, 4, 4, 4, 4, 0, 4, 0, 5, 2, 0, 2, 
+    1, 1, 1, 4, 0, 4, 4, 4, 4, 4, 4, 0, 5, 3, 0, 3, 
+    1, 0, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 0, 2, 
+    1, 0, 1, 4, 0, 0, 0, 2, 2, 0, 0, 0, 5, 3, 0, 3, 
+    1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 4, 2, 0, 2, 
+    1, 0, 0, 1, 5, 0, 0, 2, 2, 0, 0, 0, 5, 3, 0, 3, 
+    1, 0, 0, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 4, 
+    1, 0, 0, 1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 
+    2, 1, 1, 1, 5, 4, 4, 4, 5, 4, 5, 4, 5, 5, 5, 5
 };
 
 std::array<i8,mapS> mapFloor ={
@@ -60,20 +67,20 @@ std::array<i8,mapS> mapFloor ={
     
 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 0, 4, 0,
+    0, 1, 1, 2, 2, 0, 2, 0, 2, 2, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 2, 2, 0, 2, 0, 2, 2, 0, 0, 0, 0, 4, 0, 
+    0, 1, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 
 };
@@ -86,13 +93,13 @@ std::array<i8,mapS> mapCeiling ={
     
 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 0, 1, 1, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0,
+    0, 1, 1, 0, 1, 1, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 1, 1, 3, 3, 1, 1, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 
+    0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -131,9 +138,7 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
 {
     ui8 blockSide=8;//exponet for a power of 2, so each block is 64x64 pixels, 2^6
     i16 blockSidePx=pow(2,blockSide);
-    ui16 numRays=200;
-    ui8 depthOfRay=20;
-    ui8 lineWidth=10;
+
     float rayPerDeg=ONE_DGR/4;
     float rayOff=1/rayPerDeg*ONE_DGR*25;//(one deg/3*x=one deg*30)//formula for having a 30 deg offset no matter the rayPerDeg
 
@@ -141,8 +146,8 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
     vec4f ray; 
     std::vector<vec2f> walls; 
     std::vector<vec2f> floors;
-    walls.reserve(2*WIDTH);
-    floors.reserve(2*WIDTH);
+    walls.reserve(6*WIDTH);
+    floors.reserve(3*WIDTH*HEIGHT/3);
     ui8 texSlot=0;
 
     //mp,mv,mh are used to determine the number in the map array to let the shader know what texture to sample from
@@ -192,13 +197,16 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
 
         if(distV<distH){rx=vx; ry=vy; distWall=distV; vert_hor=0; tileInd=mv;}
         else {rx=hx;ry=hy; distWall=distH;vert_hor=1; tileInd=mh;}
-
+        
+        
+        depth[r]=distWall;//z buffer calculation
+        
         //distance increases fog
         float fogScale=1-distWall/(float)(WIDTH);
 
         //(vert_hor) ? glUniform4f(wallColorLoc,0.7,0.7,0.8,1.f*fogScale) : glUniform4f(wallColorLoc,0.6,0.6,0.7,1.f*fogScale);
         float texX=0;
-        (vert_hor) ? texX=(float)((int)rx%blockSidePx)/blockSidePx : texX=(float)((int)ry%blockSidePx)/blockSidePx;
+        (vert_hor) ? texX=(float)((int)rx%blockSidePx)/blockSidePx : texX=(float)((int)ry%blockSidePx)/blockSidePx; //detrmines how far down a block the intersection was, changes if intersected a verticle or horizontal wall
         texCoord.x=texX; texCoord.y=0; texCoord.z=texX; texCoord.w=1;
     
         //fixing fisheye
@@ -254,13 +262,97 @@ void drawRays(VertexBuffer& wallVBO, ui32 wallVAO,
             }
         }
 
-        
-
         ra+=rayPerDeg; if(ra<0){ra+=2*PI;} if(ra>2*PI){ra-=2*PI;}
 
     }
 
     drawTerrain(walls,wallVBO,wallVAO,floors,floorVBO,floorVAO,lineWidth);
+}
+void moveSprite(Sprite& sprite)
+{
+    vec2f follow;
+    follow.x=px-sprite.pos.x; follow.y=py-sprite.pos.y;
+    //LOG_DEBUG(follow.len());
+    if(follow.len()<300)
+    {
+        follow.normalize();
+        sprite.pos.x+=cos(.2);//follow.x*sprite.speed;
+        sprite.pos.y+=sin(.2);//follow.y*sprite.speed;        
+    }
+    else
+    {
+        follow.normalize();
+        sprite.pos.x+=follow.x*sprite.speed;
+        sprite.pos.y+=follow.y*sprite.speed;
+    }
+
+}
+void drawSprite(Sprite& sprite, Shader& spriteShader, VertexBuffer& spriteVBO, IndexBuffer& spriteEBO, unsigned int VAO,Texture2D& ghost, Texture2D& win)
+{
+    vec3f spriteRender(sprite.pos.x-px, sprite.pos.y-py, sprite.pos.z);
+    vec2f pToP(sprite.pos.x-px, pToP.y=sprite.pos.y-py);
+    pToP.normalize();
+    vec2f dir(cos(pa),sin(pa)), pPos(px,py);
+    dir.normalize();
+    float inView=std::acos(dir*pToP);
+
+    if((int)sprite.pos.x/mapS==winPos.x&&(int)sprite.pos.y/mapS==winPos.y)
+    {
+        vec3f tl(-1,1,0);
+        vec3f tr(1,1,0);
+        vec3f bl(-1,-1,0);
+        vec3f br(1,-1,0);
+        std::vector<vec3f> spriteBuff ={
+            tl, {0,0,0}, tr, {1,0,0},//top left||texCoord, top right||texCoord
+            bl, {0,1,0}, br, {1,1,0}//bottom left||texCoord, bottom right||texCoord
+        };
+       
+        glBindVertexArray(VAO);
+        spriteVBO.Bind();
+        spriteVBO.BufferData(spriteBuff.data(),spriteBuff.size()*sizeof(vec3f),GL_DYNAMIC_DRAW); //this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
+        spriteShader.Bind();
+        spriteShader.SetUniform1i("uTexture",0);
+        win.Bind(0);
+        glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
+        return;
+    }
+    if(inView*180/PI<=30) //checks if sprite is in view of the player before rendering
+    {
+        //pa is negative and the constants must be relativley high due to the screen resolution
+        float cs=cos(-pa), sn=sin(-pa);
+        float x=spriteRender.y*cs+spriteRender.x*sn; //rotation mat
+        float y=spriteRender.x*cs-spriteRender.y*sn;
+        spriteRender.x=x; spriteRender.y=y;
+        spriteRender.x=(spriteRender.x*WIDTH/spriteRender.y)+(WIDTH/2);
+        spriteRender.y=(spriteRender.z*HEIGHT/spriteRender.y)+(HEIGHT/2); //projection mat divided by the depth (y in this case since it is a 2D proj)
+        
+        if(y<depth[(int)spriteRender.x/lineWidth])//!needs to be divided by the lineWidth which is 10 in this case. This allows for correct indexing into array
+        {
+            spriteRender.clipSpace();
+            float dist=y/2000;    
+            float offx=(float)sprite.size/WIDTH/dist, offy=(float)sprite.size/HEIGHT/dist;
+            vec3f tl(spriteRender.x-offx,spriteRender.y+offy,spriteRender.z);
+            vec3f tr(spriteRender.x+offx,spriteRender.y+offy,spriteRender.z);
+            vec3f bl(spriteRender.x-offx,spriteRender.y-offy,spriteRender.z);
+            vec3f br(spriteRender.x+offx,spriteRender.y-offy,spriteRender.z);
+            float fogScale=1 + 1.04*dist + -2.09*(dist*dist);//trendline function found by google sheets  
+            std::vector<vec3f> spriteBuff ={
+                tl, {0,0,0}, tr, {1,0,0},//top left||texCoord, top right||texCoord
+                bl, {0,1,0}, br, {1,1,0}//bottom left||texCoord, bottom right||texCoord
+            };
+           
+            glBindVertexArray(VAO);
+            spriteVBO.Bind();
+            spriteVBO.BufferData(spriteBuff.data(),spriteBuff.size()*sizeof(vec3f),GL_DYNAMIC_DRAW); //this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
+            spriteShader.Bind();
+            spriteShader.SetUniform1f("uFog",fogScale);
+            spriteShader.SetUniform1i("uTexture",0);
+            ghost.Bind(0);
+            glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT,0);
+
+            
+        }
+    }
 }
 // void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 // {
@@ -275,6 +367,7 @@ void processInput(GLFWwindow* window)
     if(glfwGetKey(window,GLFW_KEY_S)==GLFW_PRESS){px-=pdx*speed; py-=pdy*speed;}
     if(glfwGetKey(window,GLFW_KEY_ESCAPE)==GLFW_PRESS){glfwSetWindowShouldClose(window,true);}
 }
+
 void setFrameRate(double fps)
 {
     
@@ -287,17 +380,24 @@ int main()
 
 
     //*geometry setup///////////////////////////////////////////////////////////////
-    vec3f player(px,py,0);
-    //player.clipSpace();
-    vec4f ray;
     
     unsigned int VAO[4];
     glGenVertexArrays(4,VAO);
 
+    Sprite sprite; sprite.pos.x=1.5*mapS; sprite.pos.y=3.5*mapS; sprite.pos.z=50; sprite.size=64; sprite.speed=5;
+
+    std::vector<GLuint> spriteInd= {
+        0,1,2,
+        1,3,2
+    };
     glBindVertexArray(VAO[0]);
-    VertexBuffer playerVBO(&player,sizeof(player),GL_DYNAMIC_DRAW);//you only need to send the address of the vector since the member variables are laid out contigiously and are the first seen
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,3*sizeof(float),(void*)0);
+    VertexBuffer spriteVBO;//you only need to send the address of the vector since the member variables are laid out contigiously and are the first seen
+    IndexBuffer spriteEBO(spriteInd.data(),spriteInd.size(),GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    
 
     glBindVertexArray(VAO[1]);
     VertexBuffer wallsVBO; //dont know the size yet. .BufferData() later in draw ray function
@@ -322,16 +422,20 @@ int main()
     IndexBuffer mapEBO;
     setMap(mapVBO,mapEBO);
 
-    Shader playerShader("../include/res/player.glsl");
+    Shader spriteShader("../include/res/sprite.glsl");
     Shader mapShader("../include/res/map.glsl");
     Shader terrainShader("../include/res/terrain.glsl");
 
-    const int numTex=5;
+    const int numTex=6;
     Texture2D wood("../assets/wood.png");//cannot create textures before gl context
     Texture2D greyStone("../assets/greystone.png");//cannot create textures before gl context
     Texture2D redBrick("../assets/redBrick.png");
     Texture2D eagle("../assets/eagle.png");
     Texture2D mossy("../assets/mossy.png");
+    Texture2D greyStone2("../assets/greystone.png");//cannot create textures before gl context
+
+    Texture2D ghost("../assets/Ghost.png");
+    Texture2D win("../assets/win.png");
     
     //!THE ORDER OF THE TEXURES IN THIS ARRAY IS THE CORRESPONDING MAP NUMBER IN THE MAP ARRAY.
     Texture2D textures[numTex]={
@@ -339,15 +443,16 @@ int main()
         wood,//1
         redBrick,//2
         eagle,//3
-        mossy //4
+        mossy, //4
+        greyStone2 //5
     };
 
     TextureArray2D texArray(textures, wood.GetWidth(), wood.GetHeight(), numTex);
     
-    Sprite sprite; sprite.pos.x=1.5*256; sprite.pos.y=4*256;sprite.pos.z=100;
+    
 
 
-
+    
     
     //locks fps to 60
 
@@ -364,10 +469,10 @@ int main()
         //*locks fps to set fps/////////////////
 
 
-        
+
         processInput(window);
         
-
+        
         terrainShader.Bind();
         texArray.Bind(1,terrainShader.getID(),"uTexArray");
         //terrainShader.SetUniform1i("uTexture",0);
@@ -375,40 +480,14 @@ int main()
         drawRays(wallsVBO,VAO[1],floorVBO,VAO[2]);
 
         mapShader.Bind();
+      
         glBindVertexArray(VAO[3]);
         glDrawElements(GL_TRIANGLES,6*mapS,GL_UNSIGNED_INT,0);
-
-        vec3f spriteRender(sprite.pos.x-px, sprite.pos.y-py, sprite.pos.z);
-        vec2f pToP(sprite.pos.x-px, pToP.y=sprite.pos.y-py);
-        pToP.normalize();
-        vec2f dir(cos(pa),sin(pa)), pPos(px,py);
-        dir.normalize();
-        float inView=std::acos(dir*pToP);
-        LOG_DEBUG(inView*180/PI);
-        //pa is negative and the constants must be relativley high due to the screen resolution
-        //perspective projection matrix
-        if(inView*180/PI<=30)
-        {
-            float cs=cos(-pa), sn=sin(-pa);
-            float x=spriteRender.y*cs+spriteRender.x*sn;
-            float y=spriteRender.x*cs-spriteRender.y*sn;
-            spriteRender.x=x; spriteRender.y=y;
-            spriteRender.x=(spriteRender.x*WIDTH/spriteRender.y)+(WIDTH/2);
-            spriteRender.y=(spriteRender.z*HEIGHT/spriteRender.y)+(HEIGHT/2);
-            spriteRender.clipSpace();
-
-            
-            playerVBO.Bind();
-            playerVBO.BufferData(&spriteRender,sizeof(spriteRender),GL_DYNAMIC_DRAW);//this updates the vertex buffer every frame to get the players new pos//could use a translation matrix instead but this simplifies the process and is a small buffer anyways
-            glBindVertexArray(VAO[0]);
-            playerShader.Bind(); 
-            glPointSize(10.f);
-            glDrawArrays(GL_POINTS,0,1);
-        }
         
+        drawSprite(sprite,spriteShader,spriteVBO,spriteEBO, VAO[0],ghost,win);
 
-        //prvTime=glfwGetTime();
-
+        moveSprite(sprite);
+        
         glfwSwapInterval(2);
         glfwSwapBuffers(window);
         glfwPollEvents();
