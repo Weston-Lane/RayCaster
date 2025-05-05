@@ -48,11 +48,10 @@ After setup
 Or you could just download the binaries via the releases tab.
 
 ### Future :construction:
-- OpenGL texture abstraction
-- Texture surfaces
-- render a weapon
-- enemy rendering and simple AI
+- add a weapon sprite
+- Vertex Attribute abstraction
 - projectiles
+- enemy logic and destruction
 - eventually port to webgl and put up on personal website.......
 
 
