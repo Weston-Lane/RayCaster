@@ -290,7 +290,7 @@ void moveSprite(Sprite& sprite)
 void drawSprite(Sprite& sprite, Shader& spriteShader, VertexBuffer& spriteVBO, IndexBuffer& spriteEBO, unsigned int VAO,Texture2D& ghost, Texture2D& win)
 {
     vec3f spriteRender(sprite.pos.x-px, sprite.pos.y-py, sprite.pos.z);
-    vec2f pToP(sprite.pos.x-px, pToP.y=sprite.pos.y-py);
+    vec2f pToP(sprite.pos.x-px,sprite.pos.y-py);
     pToP.normalize();
     vec2f dir(cos(pa),sin(pa)), pPos(px,py);
     dir.normalize();
