@@ -50,6 +50,7 @@ Or you could just download the binaries via the releases tab.
 ### Future :construction:
 - I need to clean up the code, there are a lot of magic numbers and massive functions
 - change the build system to Cmake for universal building on other machines
+- Move all pixel calculations to a compute shader since I am not really using the power of the GPU currently
 - add a weapon sprite
 - Vertex Attribute abstraction
 - projectiles
