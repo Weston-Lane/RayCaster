@@ -1,5 +1,6 @@
 # <p align="center"> OpenGl Ray Caster <sub> :suspect: </sub> </p>
-<p align="center"><sub>Finger Gunz (working title)</sub></p><br>
+<p align="center"><sub>Finger Gunz (working title)</sub><br>
+  Try it out on my <a target = "_blank" href = "https://sparefireboy.itch.io/ray-casting-engine">Itch.io</a> page!</p>
 
 ## Highlights
 - OpenGL rendering pipeline abstraction
